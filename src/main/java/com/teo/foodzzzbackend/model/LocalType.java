@@ -1,5 +1,7 @@
 package com.teo.foodzzzbackend.model;
 
+import org.hibernate.search.annotations.Field;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -10,6 +12,7 @@ import java.io.Serializable;
 @Table(name = "local_types", schema = "dbo")
 public class LocalType implements Serializable {
     @Column(name = "local_type", columnDefinition = "NVARCHAR")
+    @Field
     private String localType;
 
     @Id

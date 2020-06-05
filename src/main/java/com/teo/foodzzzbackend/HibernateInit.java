@@ -18,7 +18,6 @@ public class HibernateInit implements ApplicationListener<ContextRefreshedEvent>
     @PersistenceContext
     private EntityManager entityManager;
 
-
     @Override
     @Transactional
     public void onApplicationEvent(ContextRefreshedEvent contextRefreshedEvent) {

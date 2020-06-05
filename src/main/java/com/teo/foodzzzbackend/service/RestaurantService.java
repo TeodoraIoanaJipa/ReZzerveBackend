@@ -1,7 +1,5 @@
 package com.teo.foodzzzbackend.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teo.foodzzzbackend.model.*;
 import com.teo.foodzzzbackend.repository.*;
 import org.json.JSONArray;
@@ -20,6 +18,8 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -118,7 +118,7 @@ public class RestaurantService {
         Optional<Restaurant> restaurant = restaurantRepository.findById(id);
         List<Review> reviews = findAllReviewsByRestaurantId(id);
         Double rating = getRestaurantRating(id, reviews);
-        restaurant.get().setRating(rating);
+        restaurant.get().setRating(Double.parseDouble(String.format("%.2f", rating)));
         restaurant.get().setReviews(reviews);
         return restaurant.orElse(null);
     }
@@ -248,65 +248,78 @@ public class RestaurantService {
     }
 
     public Page<Restaurant> findAllRestaurantsPageable(String userId, String page, Integer pageSize) {
-//        Pageable firstPageWithTwoElements = PageRequest.of(Integer.parseInt(page) - 1, pageSize, Sort.by("restaurantName"));
-
-        JSONObject object = new JSONObject(getRestaurantsFromPyhtonAPI(Long.parseLong(userId)));
-        JSONArray array = object.getJSONArray("restaurant_ids");
-        System.out.println(array);
-
-        ArrayList<Restaurant> recommendedRestaurants = new ArrayList<>();
-
-        for (Object restaurantId : array.toList()) {
-            Restaurant restaurant = findRestaurantById(restaurantId.toString());
-            recommendedRestaurants.add(restaurant);
-        }
+//
         PageRequest pageRequest = PageRequest.of(Integer.parseInt(page) - 1, pageSize);
-        int total = recommendedRestaurants.size();
-        int start = (Integer.parseInt(page) - 1) * pageRequest.getPageSize();
-        int end = Math.min((start + pageRequest.getPageSize()), total);
-        System.out.println("end" + end);
+        JSONArray array;
+        try {
+            JSONObject object = new JSONObject(getRestaurantsFromPyhtonAPI(Long.parseLong(userId)));
+            array = object.getJSONArray("restaurant_ids");
+            System.out.println(array);
+            ArrayList<Restaurant> recommendedRestaurants = new ArrayList<>();
+
+            for (Object restaurantId : array.toList()) {
+                Restaurant restaurant = findRestaurantById(restaurantId.toString());
+                restaurant.setRating(Double.parseDouble(String.format("%.3f", restaurant.getRating())));
+                recommendedRestaurants.add(restaurant);
+            }
+
+            int total = recommendedRestaurants.size();
+            int start = (Integer.parseInt(page) - 1) * pageRequest.getPageSize();
+            int end = Math.min((start + pageRequest.getPageSize()), total);
+            System.out.println("end" + end);
+
+            return new PageImpl<Restaurant>(
+                    recommendedRestaurants.subList(start, end),
+                    pageRequest,
+                    total
+            );
+        } catch (Exception exception) {
+
+        }
+        Pageable firstPage = PageRequest.of(Integer.parseInt(page) - 1, pageSize, Sort.by("restaurantName"));
+        Page<RestaurantDTO> restaurantDTOS = restaurantRepository.findAllRestaurantsPageable(firstPage);
+        List<Restaurant> rests = new ArrayList<>();
+        for (RestaurantDTO restaurant : restaurantDTOS) {
+            Integer id = restaurant.getId();
+            List<Review> reviews = findAllReviewsByRestaurantId(id);
+            Double rating = getRestaurantRating(id, reviews);
+            restaurant.setRating(BigDecimal.valueOf(rating)
+                    .setScale(3, RoundingMode.HALF_UP)
+                    .doubleValue());
+            rests.add(findRestaurantById((restaurant.getId().toString())));
+        }
 
         return new PageImpl<Restaurant>(
-                recommendedRestaurants.subList(start, end),
+                rests,
                 pageRequest,
-                total
+                restaurantDTOS.getTotalElements()
         );
-
-
-//        Page<RestaurantDTO> restaurantDTOS = restaurantRepository.findAllRestaurantsPageable(firstPageWithTwoElements);
-//
-//        for (RestaurantDTO restaurant : restaurantDTOS) {
-//            Integer id = restaurant.getId();
-//            List<Review> reviews = findAllReviewsByRestaurantId(id);
-//            Double rating = getRestaurantRating(id, reviews);
-//            restaurant.setRating(rating);
-//        }
-
-//        return restaurantDTOS;
     }
 
     public FullTextQuery searchFullText(String searchText) {
         FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
+
         QueryBuilder queryBuilder = fullTextEntityManager.getSearchFactory()
                 .buildQueryBuilder()
                 .forEntity(Restaurant.class)
                 .get();
 
+        org.apache.lucene.search.Sort sort = queryBuilder
+                .sort()
+                .byField("restaurantName")
+                .asc()
+                .createSort();
+
         org.apache.lucene.search.Query luceneQuery = queryBuilder
                 .keyword()
-                .wildcard()        //it is necessary if we want to make use of wildcards
-                .onFields("restaurantName", "description", "address.street", "tags.tagName")
+                .wildcard()
+                .onFields("restaurantName", "price", "description", "address.street",
+                        "tags.tagName", "localType.localType", "kitchenTypes.kitchenName")
                 .boostedTo(5f)
                 .matching(searchText + "*")
                 .createQuery();
 
-        //        org.apache.lucene.search.Sort sort = queryBuilder
-//                .sort()
-//                .byField("restaurantName")
-//                .asc()
-//                .createSort();
-//        query.setSort(sort);
-        return fullTextEntityManager.createFullTextQuery(luceneQuery, Restaurant.class);
+        return fullTextEntityManager.createFullTextQuery(luceneQuery, Restaurant.class).setSort(sort);
     }
 
     @Transactional
@@ -315,7 +328,14 @@ public class RestaurantService {
         jpaQuery.setMaxResults(resultsPerPage);
         jpaQuery.setFirstResult((pageNo - 1) * resultsPerPage);
 
-        return (List<Restaurant>) jpaQuery.getResultList();
+        List<Restaurant> allRestaurnats = (List<Restaurant>) jpaQuery.getResultList();
+
+        for (Restaurant restaurant : allRestaurnats) {
+            List<Review> reviews = findAllReviewsByRestaurantId(restaurant.getId());
+            Double rating = getRestaurantRating(restaurant.getId(), reviews);
+            restaurant.setRating(rating);
+        }
+        return allRestaurnats;
     }
 
     public int searchRestaurantsPagesCount(String searchText, int resultsPerPage) {

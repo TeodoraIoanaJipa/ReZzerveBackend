@@ -4,14 +4,14 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class RestaurantDTO {
-    private int id;
+    private Integer id;
     private String restaurantName;
     private String pictureId;
     private String street;
     private Double rating;
     private Set<KitchenType> kitchenTypes = new HashSet<>();
 
-    public RestaurantDTO(int id, String restaurantName, String pictureId, String street, Set<KitchenType> kitchenTypes, Double rating) {
+    public RestaurantDTO(Integer id, String restaurantName, String pictureId, String street, Set<KitchenType> kitchenTypes, Double rating) {
         this.id = id;
         this.restaurantName = restaurantName;
         this.pictureId = pictureId;
@@ -20,14 +20,14 @@ public class RestaurantDTO {
         this.rating = rating;
     }
 
-    public RestaurantDTO(int id, String restaurantName, String pictureId, String street) {
+    public RestaurantDTO(Integer id, String restaurantName, String pictureId, String street) {
         this.id = id;
         this.restaurantName = restaurantName;
         this.pictureId = pictureId;
         this.street = street;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -51,7 +51,7 @@ public class RestaurantDTO {
         this.kitchenTypes = kitchenTypes;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 

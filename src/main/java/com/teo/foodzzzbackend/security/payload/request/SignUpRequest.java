@@ -2,24 +2,29 @@ package com.teo.foodzzzbackend.security.payload.request;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.util.Set;
 
 public class SignUpRequest {
     @NotBlank
-    @Size(min = 3, max = 20)
+    @Size(min = 6, max = 20)
     private String username;
 
     @NotBlank
-    @Size(max = 50)
+    @Size(min = 8, max = 30)
     @Email
     private String email;
 
     private Set<String> role;
 
     @NotBlank
-    @Size(min = 6, max = 40)
+    @Size(min = 8, max = 40)
     private String password;
+
+    @Size(max = 10)
+    @Pattern(regexp = "0[0-9]{9}", message="Invalid phone number!")
+    private String phoneNumber;
 
     public String getUsername() {
         return username;
@@ -43,6 +48,14 @@ public class SignUpRequest {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     public Set<String> getRole() {

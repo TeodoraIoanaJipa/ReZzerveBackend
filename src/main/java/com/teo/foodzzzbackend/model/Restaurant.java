@@ -18,10 +18,11 @@ import java.util.Set;
 public class Restaurant {
     @Id
     @Column(name = "restaurant_id")
-    private int id;
+    private Integer id;
 
     @Column(name = "name", columnDefinition = "NVARCHAR")
-    @Field
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
+    @SortableField
     private String restaurantName;
 
     @OneToOne(fetch = FetchType.LAZY)
@@ -76,7 +77,7 @@ public class Restaurant {
     @Transient
     private Double rating;
 
-    public Restaurant(int id, String restaurantName, String pictureId, String description,
+    public Restaurant(Integer id, String restaurantName, String pictureId, String description,
                       String opensAt, String closesAt, String price) {
         this.id = id;
         this.restaurantName = restaurantName;
@@ -90,11 +91,11 @@ public class Restaurant {
     public Restaurant() {
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -197,7 +198,7 @@ public class Restaurant {
     @Override
     public String toString() {
         return "Restaurant{" +
-                "id=" + id +
+                "id =" + id +
                 ", restaurantName='" + restaurantName + '\'' +
                 ", manager=" + manager +
                 ", pictureId='" + pictureId + '\'' +
