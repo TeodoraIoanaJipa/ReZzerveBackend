@@ -6,25 +6,25 @@ import java.util.Set;
 public class RestaurantDTO {
     private Integer id;
     private String restaurantName;
-    private String pictureId;
     private String street;
     private Double rating;
-    private Set<KitchenType> kitchenTypes = new HashSet<>();
+    private Long imageId;
+    private KitchenType kitchenType;
 
-    public RestaurantDTO(Integer id, String restaurantName, String pictureId, String street, Set<KitchenType> kitchenTypes, Double rating) {
+    public RestaurantDTO(Integer id, String restaurantName, String street, Long imageId, Double rating) {
         this.id = id;
         this.restaurantName = restaurantName;
-        this.pictureId = pictureId;
         this.street = street;
-        this.kitchenTypes = kitchenTypes;
+        this.imageId = imageId;
         this.rating = rating;
     }
 
-    public RestaurantDTO(Integer id, String restaurantName, String pictureId, String street) {
+
+    public RestaurantDTO(Integer id, String restaurantName, String street, Long imageId) {
         this.id = id;
         this.restaurantName = restaurantName;
-        this.pictureId = pictureId;
         this.street = street;
+        this.imageId = imageId;
     }
 
     public void setId(Integer id) {
@@ -35,9 +35,6 @@ public class RestaurantDTO {
         this.restaurantName = restaurantName;
     }
 
-    public void setPictureId(String pictureId) {
-        this.pictureId = pictureId;
-    }
 
     public void setStreet(String street) {
         this.street = street;
@@ -47,8 +44,8 @@ public class RestaurantDTO {
         this.rating = rating;
     }
 
-    public void setKitchenTypes(Set<KitchenType> kitchenTypes) {
-        this.kitchenTypes = kitchenTypes;
+    public void setKitchenType(KitchenType kitchenType) {
+        this.kitchenType = kitchenType;
     }
 
     public Integer getId() {
@@ -59,10 +56,6 @@ public class RestaurantDTO {
         return restaurantName;
     }
 
-    public String getPictureId() {
-        return pictureId;
-    }
-
     public String getStreet() {
         return street;
     }
@@ -71,21 +64,24 @@ public class RestaurantDTO {
         return rating;
     }
 
-    public Set<KitchenType> getKitchenTypes() {
-        return kitchenTypes;
+    public KitchenType getKitchenType() {
+        return kitchenType;
     }
 
+    public Long getImageId() {
+        return imageId;
+    }
 
+    public void setImageId(Long imageId) {
+        this.imageId = imageId;
+    }
 
     @Override
     public String toString() {
         return "RestaurantDTO{" +
                 "id=" + id +
                 ", restaurantName='" + restaurantName + '\'' +
-                ", pictureId='" + pictureId + '\'' +
-                ", street='" + street + '\'' +
                 ", rating=" + rating +
-                ", kitchenTypes=" + kitchenTypes +
                 '}';
     }
 }

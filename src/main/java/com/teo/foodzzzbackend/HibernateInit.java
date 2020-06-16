@@ -4,7 +4,6 @@ import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
@@ -25,8 +24,7 @@ public class HibernateInit implements ApplicationListener<ContextRefreshedEvent>
         try {
             fullTextEntityManager.createIndexer().startAndWait();
         } catch (InterruptedException e) {
-            System.out.println("Error occured trying to build Hibernate Search indexes "
-                    + e.toString());
+
         }
     }
 }

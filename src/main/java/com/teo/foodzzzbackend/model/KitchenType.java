@@ -1,6 +1,5 @@
 package com.teo.foodzzzbackend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 
@@ -14,7 +13,6 @@ import java.util.Set;
 @Table(name = "kitchen_types", schema = "dbo")
 @Indexed
 public class KitchenType implements Serializable {
-
     @Column(name = "kitchen_type", columnDefinition = "NVARCHAR")
     @Field
     private String kitchenName;

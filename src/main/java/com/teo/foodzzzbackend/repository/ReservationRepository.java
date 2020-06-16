@@ -2,7 +2,6 @@ package com.teo.foodzzzbackend.repository;
 
 import com.teo.foodzzzbackend.model.Reservation;
 import com.teo.foodzzzbackend.model.ReservationDTO;
-import com.teo.foodzzzbackend.model.Restaurant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -47,7 +46,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     List<ReservationDTO> findAllReservationsByRestaurantIdAndReservationDate(Integer id,
                                                                              Date reservationDate, String reservationHour);
 
-    Optional<List<Reservation>> findAllByRestaurantId(int id);
+    Optional<List<Reservation>> findAllByRestaurantIdOrderByReservationDateDesc(int id);
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
             "res.reservationHour,res.tableNumber,r.id, r.restaurantName, res.user.id) "

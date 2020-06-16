@@ -1,10 +1,5 @@
 package com.teo.foodzzzbackend.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.Field;
 
 import javax.persistence.*;
@@ -15,6 +10,7 @@ import java.io.Serializable;
 @Table(name = "address", schema = "dbo")
 public class Address implements Serializable {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
     private int id;
 

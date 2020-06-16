@@ -25,7 +25,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
+    private String parseJwt(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
+
+        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
+            return headerAuth.substring(7, headerAuth.length());
+        }
+
+        return null;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -49,13 +57,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private String parseJwt(HttpServletRequest request) {
-        String headerAuth = request.getHeader("Authorization");
 
-        if (StringUtils.hasText(headerAuth) && headerAuth.startsWith("Bearer ")) {
-            return headerAuth.substring(7, headerAuth.length());
-        }
 
-        return null;
-    }
+
 }

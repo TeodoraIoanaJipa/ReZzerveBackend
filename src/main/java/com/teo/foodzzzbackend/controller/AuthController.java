@@ -3,8 +3,10 @@ package com.teo.foodzzzbackend.controller;
 import com.teo.foodzzzbackend.model.ERole;
 import com.teo.foodzzzbackend.model.Role;
 import com.teo.foodzzzbackend.model.User;
+import com.teo.foodzzzbackend.model.VerificationToken;
 import com.teo.foodzzzbackend.repository.RoleRepository;
 import com.teo.foodzzzbackend.repository.UserRepository;
+import com.teo.foodzzzbackend.security.OnRegistrationCompleteEvent;
 import com.teo.foodzzzbackend.security.jwt.JwtUtils;
 import com.teo.foodzzzbackend.security.payload.request.LoginRequest;
 import com.teo.foodzzzbackend.security.payload.request.SignUpRequest;
@@ -12,14 +14,15 @@ import com.teo.foodzzzbackend.security.payload.response.JwtResponse;
 import com.teo.foodzzzbackend.security.payload.response.MessageResponse;
 import com.teo.foodzzzbackend.security.service.UserDetailsImpl;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
+import com.teo.foodzzzbackend.security.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,10 +33,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-//@CrossOrigin(origins = "*", maxAge = 3600)
-@CrossOrigin(origins = "http://localhost:4200")
+
+@CrossOrigin(origins = {"http://localhost:4200","https://foodzzz-a4f2c.web.app"})
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/foodz/auth")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
@@ -50,15 +53,21 @@ public class AuthController {
     @Autowired
     JwtUtils jwtUtils;
 
+    @Autowired
+    private UserDetailsServiceImpl service;
+
+    @Autowired
+    ApplicationEventPublisher eventPublisher;
+
     @PostMapping("/login")
     @CrossOrigin
-    public ResponseEntity authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         Authentication authentication;
-        try{
+        try {
             authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-        }catch(BadCredentialsException exception){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Error Message");
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        } catch (BadCredentialsException exception) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Email sau parolă invalide."));
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -69,17 +78,75 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                roles));
+        if (userDetails.isEmailEnabled())
+            return ResponseEntity.ok(new JwtResponse(jwt,
+                    userDetails.getId(),
+                    userDetails.getUsername(),
+                    userDetails.getEmail(),
+                    roles));
+        else
+            return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("Email-ul nu a fost confirmat încă."));
+
     }
 
+    @GetMapping("/registrationConfirm")
+    @CrossOrigin
+    public ResponseEntity<?> confirmRegistration(@RequestParam String token) {
+        try {
+            VerificationToken verificationToken = service.getVerificationToken(token);
+
+            if (verificationToken == null) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new MessageResponse("Token de înregistrare invalid."));
+            }
+
+            User user = verificationToken.getUser();
+            Calendar cal = Calendar.getInstance();
+            if ((verificationToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new MessageResponse("Tokenul de înregistrare expiră dupa 24h."));
+            }
+
+            user.setEnabled(true);
+            service.saveRegisteredUser(user);
+            service.deleteVerificationToken(token);
+            return ResponseEntity.ok(new MessageResponse("Confirmarea email-ului a avut loc cu succes. Vă mulțumim! Acum puteți accesa contul."));
+        }catch(Exception exception){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Token-ul este invalid."));
+        }
+
+    }
+
+    @GetMapping("/resendRegistrationToken")
+    @CrossOrigin
+    public ResponseEntity<?> resendRegistrationToken(@RequestParam String existingToken, HttpServletRequest request) {
+//        VerificationToken newToken = userService.generateNewVerificationToken(existingToken);
+        User user = service.getUser(existingToken);
+        service.deleteVerificationToken(existingToken);
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(user, request.getLocale()));
+
+        return ResponseEntity.ok(new MessageResponse("Email-ul a fost trimis catre dumneavoastra. "));
+    }
+
+    @GetMapping("/resendRegistrationTokenByEmail")
+    @CrossOrigin
+    public ResponseEntity<?> resendRegistrationTokenByEmail(@RequestParam String email, HttpServletRequest request) {
+//        VerificationToken newToken = userService.generateNewVerificationToken(existingToken);
+        User user = service.findUserByUsername(email);
+//        service.deleteVerificationToken(existingToken);
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent((User) user, request.getLocale()));
+
+        return ResponseEntity.ok(new MessageResponse("Email-ul a fost trimis către dumneavoastră. "));
+    }
 
     @CrossOrigin(origins = "http://localhost:4200/", maxAge = 3600)
     @RequestMapping(value = "/signup", method = RequestMethod.POST)
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignUpRequest signUpRequest,
+                                          HttpServletRequest request) {
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             return ResponseEntity
                     .badRequest()
@@ -91,7 +158,6 @@ public class AuthController {
                     .badRequest()
                     .body(new MessageResponse("Error: Exista deja un cont cu acest email!"));
         }
-
 
         User user = new User(signUpRequest.getUsername(), signUpRequest.getEmail(),
                 encoder.encode(signUpRequest.getPassword()), signUpRequest.getPhoneNumber());
@@ -127,9 +193,11 @@ public class AuthController {
         }
 
         user.setRoles(roles);
-        userRepository.save(user);
+        User userSaved = userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        eventPublisher.publishEvent(new OnRegistrationCompleteEvent(userSaved, request.getLocale()));
+
+        return ResponseEntity.ok(new MessageResponse("Utilizator înregistrat cu succes!"));
     }
 
 }

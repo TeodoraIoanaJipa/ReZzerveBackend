@@ -20,7 +20,7 @@ import java.util.Optional;
 @RequestMapping("/api/foodz")
 public class RestaurantsController {
 
-    public static final int RESTAURANTS_PER_PAGE = 8;
+    public static final int RESTAURANTS_PER_PAGE = 12;
     public static final int RESERVATIONS_PER_PAGE = 6;
 
     @Autowired
@@ -28,7 +28,7 @@ public class RestaurantsController {
 
     @GetMapping("/restaurants/all")
     @CrossOrigin
-    public ResponseEntity<Page<Restaurant>> getAllRestaurants(@RequestParam String userId, @RequestParam Optional<String> pageNumber) {
+    public ResponseEntity<Page<RestaurantDTO>> getAllRestaurants(@RequestParam String userId, @RequestParam Optional<String> pageNumber) {
         return new ResponseEntity<>(restaurantService.findAllRestaurantsPageable(userId, pageNumber.orElse("0"), RESTAURANTS_PER_PAGE), HttpStatus.OK);
     }
 
@@ -38,16 +38,49 @@ public class RestaurantsController {
         return (restaurantService.findRestaurantById(restaurantId));
     }
 
-    @GetMapping("/restaurants/images")
-    @CrossOrigin
-    public List<Image> getImages(@RequestParam String restaurantId) {
-        return (restaurantService.findAllImagesByRestaurantId(restaurantId));
-    }
-
-    @GetMapping("/keywords")
+    @GetMapping("/restaurants/keywords")
     @CrossOrigin
     public List<Tag> getTags(@RequestParam String restaurantId) {
         return (restaurantService.findAllTagsByRestaurantId(restaurantId));
+    }
+
+    @GetMapping("/restaurants/reviews")
+    @CrossOrigin
+    public List<Review> getReviews(@RequestParam String restaurantId) {
+        return (restaurantService.findAllReviewsByRestaurantId(Integer.parseInt(restaurantId)));
+    }
+
+//    @GetMapping("/restaurants/tables")
+//    @CrossOrigin
+//    public List<Table> getAllTablesByRestaurantId(@RequestParam String restaurantId) {
+//        return (restaurantService.findAllTablesByRestaurantId(restaurantId));
+//    }
+
+    @GetMapping("/restaurants/table-forms")
+    @CrossOrigin
+    public List<TableForm> getAllTableFormsByRestaurantId(@RequestParam String restaurantId) {
+        return (restaurantService.findTableFormsByRestaurantId(restaurantId));
+    }
+
+    @GetMapping("/restaurants/search")
+    @CrossOrigin
+    public ModelMap showAdminPanel(@RequestParam String searchText, @RequestParam String pageNumber) {
+        ModelMap model = new ModelMap();
+        if (searchText == null && pageNumber == null) {
+            return null;
+        }
+
+        if (searchText != null && pageNumber == null) {
+            pageNumber = "1";
+            model.put("pageNo", 1);
+        }
+        model.addAttribute("totalItems",
+                restaurantService.searchRestaurantsTotalCount(searchText));
+        model.addAttribute("pageCount",
+                restaurantService.searchRestaurantsPagesCount(searchText, RESTAURANTS_PER_PAGE));
+        model.addAttribute("restaurantsList",
+                restaurantService.searchRestaurants(searchText, Integer.parseInt(pageNumber), RESTAURANTS_PER_PAGE));
+        return model;
     }
 
     @GetMapping("/reservation/history")
@@ -64,8 +97,9 @@ public class RestaurantsController {
 
     @GetMapping("/reservation/history/restaurant")
     @CrossOrigin
-    public ResponseEntity<List<ReservationDTO>> getRestaurantsReservationsPageable(@RequestParam String userId,
-                                                                                   @RequestParam String restaurantId, @RequestParam String reservationId, @RequestParam Optional<String> pageNumber) {
+    public ResponseEntity<List<ReservationDTO>> getRestaurantsReservationsPageable(
+            @RequestParam String userId, @RequestParam String restaurantId,
+            @RequestParam String reservationId, @RequestParam Optional<String> pageNumber) {
         return new ResponseEntity<List<ReservationDTO>>(restaurantService.findAllReservationsByUserIdAndRestaurantId(userId, restaurantId, reservationId), HttpStatus.OK);
     }
 
@@ -78,33 +112,11 @@ public class RestaurantsController {
     @GetMapping("/reservation/available")
     @CrossOrigin
     public List<ReservationDTO> getAllReservationsByRestaurantIdReservationDateAndReservationHour(
-            @RequestParam String restaurantId, @RequestParam String reservationDate, @RequestParam String reservationHour) throws ParseException {
-        return (restaurantService.findAllReservationsByRestaurantIdReservationDateAndReservationHour(restaurantId, reservationDate, reservationHour));
+            @RequestParam String restaurantId, @RequestParam String reservationDate,
+            @RequestParam String reservationHour) throws ParseException {
+        return (restaurantService.findAllReservationsByRestaurantIdDateAndHour(restaurantId, reservationDate, reservationHour));
     }
 
-    @GetMapping("/restaurants/tables")
-    @CrossOrigin
-    public List<Table> getAllTablesByRestaurantId(@RequestParam String restaurantId) {
-        return (restaurantService.findAllTablesByRestaurantId(restaurantId));
-    }
-
-    @GetMapping("/restaurants/search")
-    @CrossOrigin
-    public ModelMap showAdminPanel(@RequestParam String searchText, @RequestParam String pageNumber) {
-        ModelMap model = new ModelMap();
-        if (searchText == null && pageNumber == null) {
-            return null;
-        }
-
-        if (searchText != null && pageNumber == null) {
-            pageNumber = "1";
-            model.put("pageNo", 1);
-        }
-        model.addAttribute("totalItems", restaurantService.searchRestaurantsTotalCount(searchText));
-        model.addAttribute("pageCount", restaurantService.searchRestaurantsPagesCount(searchText, RESTAURANTS_PER_PAGE));
-        model.addAttribute("restaurantsList", restaurantService.searchRestaurants(searchText, Integer.parseInt(pageNumber), RESTAURANTS_PER_PAGE));
-        return model;
-    }
 
     @PostMapping(path = "/restaurants/review/save", consumes = "application/json")
     @CrossOrigin

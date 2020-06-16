@@ -46,8 +46,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -58,7 +56,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors().and().csrf().disable()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-                .authorizeRequests().antMatchers("/api/auth/**").permitAll()
+                .authorizeRequests().antMatchers("/api/foodz/auth/**", "/api/manager/restaurant/download-file**").permitAll()
                 .antMatchers("/api/test/**").permitAll()
                 .anyRequest().authenticated();
 
@@ -75,7 +73,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //    }
 //
 //    @Override
-//    protected void configure(HttpSecurity http)
+//    protected void configure(Ht tpSecurity http)
 //            throws Exception {
 //        http.cors().and().csrf().disable()
 //                .authorizeRequests()

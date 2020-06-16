@@ -28,17 +28,17 @@ public class User {
     private String username;
 
     @NotBlank
-    @Size(max = 30)
+    @Size(max = 45)
     @Email
     private String email;
 
     @NotBlank
     @Size(max = 120, min = 8)
-    @Pattern(regexp="^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*_-]).{8,}$", message="Invalid email address!")
+    @Pattern(regexp = "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*_-]).{8,}$", message = "Invalid email address!")
     private String password;
 
     @Size(max = 10)
-    @Pattern(regexp = "0[0-9]{9}", message="Invalid phone number!")
+    @Pattern(regexp = "0[0-9]{9}", message = "Invalid phone number!")
     private String phoneNumber;
 
     @ManyToMany(fetch = FetchType.LAZY)
@@ -56,7 +56,11 @@ public class User {
     @JsonIgnore
     private List<Review> reviews;
 
+    @Column(name = "enabled")
+    private boolean enabled;
+
     public User() {
+        this.enabled = false;
     }
 
     public User(String username, String email, String password, String phoneNumber) {
@@ -64,6 +68,7 @@ public class User {
         this.email = email;
         this.password = password;
         this.phoneNumber = phoneNumber;
+        this.enabled = false;
     }
 
     public Long getId() {
@@ -120,5 +125,21 @@ public class User {
 
     public void setManagedRestaurant(Restaurant managedRestaurant) {
         this.managedRestaurant = managedRestaurant;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
