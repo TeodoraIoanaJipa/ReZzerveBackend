@@ -42,7 +42,8 @@ public class RegistrationListener implements
 
         service.createVerificationToken(user, token);
 
-        String confirmationUrl = "http://localhost:4200/registration-confirm/"+ token;
+//        String confirmationUrl = "http://localhost:4200/registration-confirm/"+ token;
+        String confirmationUrl = "https://foodzzz-a4f2c.web.app/registration-confirm/"+ token;
         String subject = "Registration Confirmation";
         sendSimpleMessage(user, subject, confirmationUrl);
     }
