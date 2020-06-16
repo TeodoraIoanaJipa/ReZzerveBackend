@@ -11,6 +11,9 @@ public class RestaurantDTO {
     private Long imageId;
     private KitchenType kitchenType;
 
+    public RestaurantDTO() {
+    }
+
     public RestaurantDTO(Integer id, String restaurantName, String street, Long imageId, Double rating) {
         this.id = id;
         this.restaurantName = restaurantName;

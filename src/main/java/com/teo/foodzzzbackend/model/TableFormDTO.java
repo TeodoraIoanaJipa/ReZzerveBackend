@@ -14,6 +14,9 @@ public class TableFormDTO {
     private String type;
     private int numberOfPersons;
 
+    public TableFormDTO() {
+    }
+
     public Integer getTableId() {
         return tableId;
     }

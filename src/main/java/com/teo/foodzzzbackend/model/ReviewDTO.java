@@ -13,6 +13,9 @@ public class ReviewDTO {
     private int reservationId;
     private int rating;
 
+    public ReviewDTO() {
+    }
+
     public String getComment() {
         return comment;
     }

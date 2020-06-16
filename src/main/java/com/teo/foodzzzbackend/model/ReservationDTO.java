@@ -13,6 +13,8 @@ public class ReservationDTO {
     private Long userId;
     private boolean isReviewable;
 
+    public ReservationDTO() {}
+
     public ReservationDTO(Integer reservationId, Date reservationDate, int numberOfPersons, String reservationHour, String tableNumber, int restaurantId, String restaurantName, Long userId) {
         this.reservationId = reservationId;
         this.reservationDate = reservationDate;
@@ -95,4 +97,6 @@ public class ReservationDTO {
     public void setReviewable(boolean reviewable) {
         isReviewable = reviewable;
     }
+
+
 }
