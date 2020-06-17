@@ -46,7 +46,7 @@ public class Restaurant {
     private String closesAt;
 
     @Column(name = "price_category", columnDefinition = "NVARCHAR")
-    @Field
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
     private String price;
 
     @ManyToMany(cascade = {CascadeType.ALL})
@@ -55,7 +55,7 @@ public class Restaurant {
             joinColumns = {@JoinColumn(name = "restaurant_id")},
             inverseJoinColumns = {@JoinColumn(name = "kitchen_id")}
     )
-    @IndexedEmbedded(depth = 1)
+    @IndexedEmbedded(depth = 2)
     private Set<KitchenType> kitchenTypes = new HashSet<>();
 
     @ManyToMany(cascade = {CascadeType.ALL})

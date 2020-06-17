@@ -124,9 +124,7 @@ public class ManagerController {
             return ResponseEntity.badRequest()
                     .body(new MessageResponse("Numarul maxim de imagini a fost atins."));
         }
-
     }
-
 
 //    @PostMapping(value = "/uploadMultipleFiles", consumes = { "multipart/form-data", MediaType.APPLICATION_JSON_VALUE })
 //    @CrossOrigin

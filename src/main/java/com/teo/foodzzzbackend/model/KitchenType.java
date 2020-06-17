@@ -1,7 +1,7 @@
 package com.teo.foodzzzbackend.model;
 
-import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.*;
+import org.hibernate.search.annotations.Index;
 
 import javax.persistence.*;
 import javax.persistence.Table;
@@ -14,7 +14,7 @@ import java.util.Set;
 @Indexed
 public class KitchenType implements Serializable {
     @Column(name = "kitchen_type", columnDefinition = "NVARCHAR")
-    @Field
+    @Field(index = Index.YES, analyze = Analyze.YES, store = Store.NO)
     private String kitchenName;
 
     @Id

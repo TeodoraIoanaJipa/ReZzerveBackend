@@ -71,6 +71,68 @@ public class RestaurantService {
         }
     }
 
+    public Page<RestaurantDTO> findAllRestaurantsPageable(String userId, String page, Integer pageSize) {
+        PageRequest pageRequest = PageRequest.of(Integer.parseInt(page) - 1, pageSize);
+        JSONArray array;
+        try {
+            JSONObject object = new JSONObject(getRestaurantsFromPyhtonAPI(Long.parseLong(userId)));
+            array = object.getJSONArray("restaurant_ids");
+            ArrayList<RestaurantDTO> recommendedRestaurants = new ArrayList<>();
+            List<Object> recommendationsFromPyhton = array.toList();
+            int total = array.toList().size();
+            int start = (Integer.parseInt(page) - 1) * pageRequest.getPageSize();
+            int end = Math.min((start + pageRequest.getPageSize()), total);
+            for (int i = start; i< end; i++) {
+                Object restaurantId =  recommendationsFromPyhton.get(i);
+                RestaurantDTO restaurantDTO = findRestaurantDTOById(restaurantId.toString());
+                List<Restaurant> list = new ArrayList<>();
+                list.add(restaurantRepository.findById(restaurantDTO.getId()).orElse(null));
+                Optional<KitchenType> kt = kitchenTypeRepository.findFirstByRestaurantsIn(list);
+                restaurantDTO.setKitchenType(kt.orElse(null));
+                recommendedRestaurants.add(restaurantDTO);
+            }
+
+            return new PageImpl<>(
+                    recommendedRestaurants,
+                    pageRequest,
+                    total
+            );
+        } catch (Exception exception) {
+            Pageable firstPage = PageRequest.of(Integer.parseInt(page) - 1, pageSize, Sort.by("restaurantName"));
+            Page<RestaurantDTO> restaurantDTOS = restaurantRepository.findAllRestaurantsPageable(firstPage);
+            for (RestaurantDTO restaurantDTO : restaurantDTOS) {
+                List<Restaurant> list = new ArrayList<>();
+                list.add(restaurantRepository.findById(restaurantDTO.getId()).orElse(null));
+                Optional<KitchenType> kt = kitchenTypeRepository.findFirstByRestaurantsIn(list);
+                restaurantDTO.setKitchenType(kt.orElse(null));
+            }
+            return restaurantDTOS;
+        }
+    }
+
+    @Transactional
+    public List<RestaurantDTO> searchRestaurants(String searchText, int pageNo, int resultsPerPage) {
+        FullTextQuery jpaQuery = searchFullText(searchText);
+        jpaQuery.setMaxResults(resultsPerPage);
+        jpaQuery.setFirstResult((pageNo - 1) * resultsPerPage);
+
+        List<Restaurant> allRestaurants = (List<Restaurant>) jpaQuery.getResultList();
+        List<RestaurantDTO> restaurantDTOS = new ArrayList<>();
+
+        for (Restaurant restaurant : allRestaurants) {
+//            List<Review> reviews = findAllReviewsByRestaurantId(restaurant.getId());
+//            Double rating = getRestaurantRating(restaurant.getId(), reviews);
+//            restaurant.setRating(rating);
+            RestaurantDTO restaurantDTO = findRestaurantDTOById(restaurant.getId().toString());
+            List<Restaurant> list = new ArrayList<>();
+            list.add(restaurant);
+            Optional<KitchenType> kt = kitchenTypeRepository.findFirstByRestaurantsIn(list);
+            restaurantDTO.setKitchenType(kt.orElse(null));
+            restaurantDTOS.add(restaurantDTO);
+        }
+        return restaurantDTOS;
+    }
+
     private Map<Integer, Integer> getStarsRatingMap(List<Review> reviews) {
         Map<Integer, Integer> numberOfStars = new HashMap<>();
         for (Review review : reviews) {
@@ -138,14 +200,6 @@ public class RestaurantService {
         Optional<List<TableForm>> tables  = tableFormRepository.findAllByRestaurantId(id);
         return tables.orElse(null);
     }
-
-
-//    public List<Image> findAllImagesByRestaurantId(String restaurantId) {
-//        List<Image> images = new ArrayList<Image>();
-//        Optional<List<Image>> opt = imageRepository.findAllByRestaurantId(Integer.parseInt(restaurantId));
-//        images = opt.orElse(null);
-//        return images;
-//    }
 
     public List<Tag> findAllTagsByRestaurantId(String restaurantId) {
         Optional<List<Tag>> opt = tagRepository.findAllByRestaurantId(Integer.parseInt(restaurantId));
@@ -249,51 +303,6 @@ public class RestaurantService {
     }
 
 
-//    public List<Table> findAllTablesByRestaurantId(String restaurantId) {
-//        List<Table> tables;
-//        tables = tableRepository.findAllByRestaurantId(Integer.parseInt(restaurantId));
-//        return tables;
-//    }
-
-    public Page<RestaurantDTO> findAllRestaurantsPageable(String userId, String page, Integer pageSize) {
-        PageRequest pageRequest = PageRequest.of(Integer.parseInt(page) - 1, pageSize);
-        JSONArray array;
-        try {
-            JSONObject object = new JSONObject(getRestaurantsFromPyhtonAPI(Long.parseLong(userId)));
-            array = object.getJSONArray("restaurant_ids");
-            ArrayList<RestaurantDTO> recommendedRestaurants = new ArrayList<>();
-            List<Object> recommendationsFromPyhton = array.toList();
-            int total = array.toList().size();
-            int start = (Integer.parseInt(page) - 1) * pageRequest.getPageSize();
-            int end = Math.min((start + pageRequest.getPageSize()), total);
-            for (int i = start; i< end; i++) {
-                Object restaurantId =  recommendationsFromPyhton.get(i);
-                RestaurantDTO restaurantDTO = findRestaurantDTOById(restaurantId.toString());
-                List<Restaurant> list = new ArrayList<>();
-                list.add(restaurantRepository.findById(restaurantDTO.getId()).orElse(null));
-                Optional<KitchenType> kt = kitchenTypeRepository.findFirstByRestaurantsIn(list);
-                restaurantDTO.setKitchenType(kt.orElse(null));
-                recommendedRestaurants.add(restaurantDTO);
-            }
-
-            return new PageImpl<>(
-                    recommendedRestaurants,
-                    pageRequest,
-                    total
-            );
-        } catch (Exception exception) {
-            Pageable firstPage = PageRequest.of(Integer.parseInt(page) - 1, pageSize, Sort.by("restaurantName"));
-            Page<RestaurantDTO> restaurantDTOS = restaurantRepository.findAllRestaurantsPageable(firstPage);
-            for (RestaurantDTO restaurantDTO : restaurantDTOS) {
-                List<Restaurant> list = new ArrayList<>();
-                list.add(restaurantRepository.findById(restaurantDTO.getId()).orElse(null));
-                Optional<KitchenType> kt = kitchenTypeRepository.findFirstByRestaurantsIn(list);
-                restaurantDTO.setKitchenType(kt.orElse(null));
-            }
-            return restaurantDTOS;
-        }
-
-    }
 
     public FullTextQuery searchFullText(String searchText) {
         FullTextEntityManager fullTextEntityManager = Search.getFullTextEntityManager(entityManager);
@@ -321,21 +330,7 @@ public class RestaurantService {
         return fullTextEntityManager.createFullTextQuery(luceneQuery, Restaurant.class).setSort(sort);
     }
 
-    @Transactional
-    public List<Restaurant> searchRestaurants(String searchText, int pageNo, int resultsPerPage) {
-        FullTextQuery jpaQuery = searchFullText(searchText);
-        jpaQuery.setMaxResults(resultsPerPage);
-        jpaQuery.setFirstResult((pageNo - 1) * resultsPerPage);
 
-        List<Restaurant> allRestaurants = (List<Restaurant>) jpaQuery.getResultList();
-
-        for (Restaurant restaurant : allRestaurants) {
-            List<Review> reviews = findAllReviewsByRestaurantId(restaurant.getId());
-            Double rating = getRestaurantRating(restaurant.getId(), reviews);
-            restaurant.setRating(rating);
-        }
-        return allRestaurants;
-    }
 
     public int searchRestaurantsPagesCount(String searchText, int resultsPerPage) {
         long userCount = searchRestaurantsTotalCount(searchText);

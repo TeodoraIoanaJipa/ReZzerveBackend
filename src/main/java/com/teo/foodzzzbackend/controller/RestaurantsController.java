@@ -16,7 +16,6 @@ import java.util.Optional;
 
 
 @RestController
-//@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api/foodz")
 public class RestaurantsController {
 
@@ -30,36 +29,6 @@ public class RestaurantsController {
     @CrossOrigin
     public ResponseEntity<Page<RestaurantDTO>> getAllRestaurants(@RequestParam String userId, @RequestParam Optional<String> pageNumber) {
         return new ResponseEntity<>(restaurantService.findAllRestaurantsPageable(userId, pageNumber.orElse("0"), RESTAURANTS_PER_PAGE), HttpStatus.OK);
-    }
-
-    @GetMapping("/restaurants/find")
-    @CrossOrigin
-    public Restaurant getRestaurant(@RequestParam String restaurantId) {
-        return (restaurantService.findRestaurantById(restaurantId));
-    }
-
-    @GetMapping("/restaurants/keywords")
-    @CrossOrigin
-    public List<Tag> getTags(@RequestParam String restaurantId) {
-        return (restaurantService.findAllTagsByRestaurantId(restaurantId));
-    }
-
-    @GetMapping("/restaurants/reviews")
-    @CrossOrigin
-    public List<Review> getReviews(@RequestParam String restaurantId) {
-        return (restaurantService.findAllReviewsByRestaurantId(Integer.parseInt(restaurantId)));
-    }
-
-//    @GetMapping("/restaurants/tables")
-//    @CrossOrigin
-//    public List<Table> getAllTablesByRestaurantId(@RequestParam String restaurantId) {
-//        return (restaurantService.findAllTablesByRestaurantId(restaurantId));
-//    }
-
-    @GetMapping("/restaurants/table-forms")
-    @CrossOrigin
-    public List<TableForm> getAllTableFormsByRestaurantId(@RequestParam String restaurantId) {
-        return (restaurantService.findTableFormsByRestaurantId(restaurantId));
     }
 
     @GetMapping("/restaurants/search")
@@ -82,6 +51,32 @@ public class RestaurantsController {
                 restaurantService.searchRestaurants(searchText, Integer.parseInt(pageNumber), RESTAURANTS_PER_PAGE));
         return model;
     }
+
+    @GetMapping("/restaurants/find")
+    @CrossOrigin
+    public Restaurant getRestaurant(@RequestParam String restaurantId) {
+        return (restaurantService.findRestaurantById(restaurantId));
+    }
+
+    @GetMapping("/restaurants/keywords")
+    @CrossOrigin
+    public List<Tag> getTags(@RequestParam String restaurantId) {
+        return (restaurantService.findAllTagsByRestaurantId(restaurantId));
+    }
+
+    @GetMapping("/restaurants/reviews")
+    @CrossOrigin
+    public List<Review> getReviews(@RequestParam String restaurantId) {
+        return (restaurantService.findAllReviewsByRestaurantId(Integer.parseInt(restaurantId)));
+    }
+
+    @GetMapping("/restaurants/table-forms")
+    @CrossOrigin
+    public List<TableForm> getAllTableFormsByRestaurantId(@RequestParam String restaurantId) {
+        return (restaurantService.findTableFormsByRestaurantId(restaurantId));
+    }
+
+
 
     @GetMapping("/reservation/history")
     @CrossOrigin
