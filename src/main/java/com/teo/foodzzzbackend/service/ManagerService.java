@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -148,6 +149,7 @@ public class ManagerService {
         newRestaurant.setPrice(restaurantDTO.getPrice());
         newRestaurant.setWidth(650);
         newRestaurant.setHeight(480);
+        newRestaurant.setAddedDate(new Date());
         Restaurant rest = restaurantRepository.save(newRestaurant);
 
         rest.setKitchenTypes(restaurantDTO.getKitchenTypes());

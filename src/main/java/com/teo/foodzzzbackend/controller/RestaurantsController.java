@@ -27,8 +27,10 @@ public class RestaurantsController {
 
     @GetMapping("/restaurants/all")
     @CrossOrigin
-    public ResponseEntity<Page<RestaurantDTO>> getAllRestaurants(@RequestParam String userId, @RequestParam Optional<String> pageNumber) {
-        return new ResponseEntity<>(restaurantService.findAllRestaurantsPageable(userId, pageNumber.orElse("0"), RESTAURANTS_PER_PAGE), HttpStatus.OK);
+    public ResponseEntity<Page<RestaurantDTO>> getAllRestaurants(@RequestParam String userId,
+                                                                 @RequestParam String orderBy,
+                                                                 @RequestParam Optional<String> pageNumber) {
+        return new ResponseEntity<>(restaurantService.findAllRestaurantsPageable(userId, orderBy, pageNumber.orElse("0"), RESTAURANTS_PER_PAGE), HttpStatus.OK);
     }
 
     @GetMapping("/restaurants/search")

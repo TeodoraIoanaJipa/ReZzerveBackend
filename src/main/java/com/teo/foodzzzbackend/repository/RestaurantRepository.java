@@ -38,8 +38,25 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
             "  res.address.street, min(img.id), avg(rev.rating)) " +
             "FROM Restaurant res join Images img on res.id = img.restaurant.id " +
             "left join Review rev on rev.restaurant.id = res.id" +
-            "  group by res.id, res.restaurantName, res.address.street")
+            "  group by res.id, res.restaurantName, res.address.street " +
+            "order by res.restaurantName")
     Page<RestaurantDTO> findAllRestaurantsPageable(Pageable pageable);
+
+    @Query("SELECT new com.teo.foodzzzbackend.model.RestaurantDTO(res.id, res.restaurantName, " +
+            "  res.address.street, min(img.id), avg(rev.rating)) " +
+            "FROM Restaurant res join Images img on res.id = img.restaurant.id " +
+            "left join Review rev on rev.restaurant.id = res.id" +
+            "  group by res.id, res.restaurantName, res.address.street " +
+            " order by avg(rev.rating) desc")
+    Page<RestaurantDTO> findAllRestaurantsPageableOrderByPopularity(Pageable pageable);
+
+    @Query("SELECT new com.teo.foodzzzbackend.model.RestaurantDTO(res.id, res.restaurantName, " +
+            "  res.address.street, min(img.id), avg(rev.rating)) " +
+            "FROM Restaurant res join Images img on res.id = img.restaurant.id " +
+            "left join Review rev on rev.restaurant.id = res.id" +
+            "  group by res.id, res.restaurantName, res.address.street, res.addedDate " +
+            " order by res.addedDate desc")
+    Page<RestaurantDTO> findAllRestaurantsPageableOrderByDate(Pageable pageable);
 
 
 }

@@ -9,6 +9,7 @@ import org.hibernate.search.annotations.Index;
 import javax.persistence.*;
 import javax.persistence.Table;
 import javax.validation.constraints.Size;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -87,6 +88,8 @@ public class Restaurant {
 
     private Integer height;
 
+    @Column(name = "added_date")
+    private Date addedDate;
 
     @Transient
     private Double rating;
@@ -226,15 +229,20 @@ public class Restaurant {
         this.height = height;
     }
 
+    public Date getAddedDate() {
+        return addedDate;
+    }
+
+    public void setAddedDate(Date addedDate) {
+        this.addedDate = addedDate;
+    }
+
     @Override
     public String toString() {
         return "Restaurant{" +
                 "id =" + id +
                 ", restaurantName='" + restaurantName + '\'' +
                 ", manager=" + manager +
-                ", description='" + description + '\'' +
-                ", opensAt='" + opensAt + '\'' +
-                ", rating=" + rating +
                 '}';
     }
 }
