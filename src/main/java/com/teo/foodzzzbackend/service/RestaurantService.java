@@ -380,7 +380,8 @@ public class RestaurantService {
 
     public int searchRestaurantsPagesCount(String searchText, int resultsPerPage) {
         long userCount = searchRestaurantsTotalCount(searchText);
-        return (int) Math.floorDiv(userCount, resultsPerPage) + 1;
+        int i = (int) Math.floorDiv(userCount, resultsPerPage) + 1;
+        return i;
     }
 
     @Transactional
