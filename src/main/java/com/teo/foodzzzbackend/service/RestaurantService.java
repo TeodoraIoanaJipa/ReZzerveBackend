@@ -72,7 +72,7 @@ public class RestaurantService {
     }
 
     public String getCollaborativeRecommendationFromAPI(Long userId) {
-        String restaurantsURL = "http://localhost:5000//recommendation/api/restaurant-collaborative/{user_id}";
+        String restaurantsURL = "http://localhost:5000/recommendation/api/restaurant-collaborative/{user_id}";
         try {
             ResponseEntity<String> response = this.restTemplate.getForEntity(restaurantsURL, String.class, userId);
             if (response.getStatusCode() == HttpStatus.OK) {
