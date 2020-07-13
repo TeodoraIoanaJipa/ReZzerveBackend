@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface ReviewRepository extends JpaRepository<Review, Integer> {
     Review save(Review review);
 
-    Optional<List<Review>> findAllByRestaurantId(int restaurantId);
+    Optional<List<Review>> findAllByRestaurantIdOrderByCreatedDateDesc(int restaurantId);
     Optional<List<Review>> findAllByRestaurantIdAndUserIdAndReservation_ReservationId(int restaurantId,
                                                                                       Long userId, Integer reservationId);
 }

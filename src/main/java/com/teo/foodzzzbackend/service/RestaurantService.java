@@ -197,7 +197,7 @@ public class RestaurantService {
     }
 
     public List<Review> findAllReviewsByRestaurantId(Integer restaurantId) {
-        Optional<List<Review>> allReviews = reviewRepository.findAllByRestaurantId(restaurantId);
+        Optional<List<Review>> allReviews = reviewRepository.findAllByRestaurantIdOrderByCreatedDateDesc(restaurantId);
         List<Review> reviews = new ArrayList<>();
         if (allReviews.isPresent()) {
             reviews = allReviews.get();

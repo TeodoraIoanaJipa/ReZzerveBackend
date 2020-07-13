@@ -78,8 +78,6 @@ public class RestaurantsController {
         return (restaurantService.findTableFormsByRestaurantId(restaurantId));
     }
 
-
-
     @GetMapping("/reservation/history")
     @CrossOrigin
     public List<ReservationDTO> getReservations(@RequestParam String userId) {
