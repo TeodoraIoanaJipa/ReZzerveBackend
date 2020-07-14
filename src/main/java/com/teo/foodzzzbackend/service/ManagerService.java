@@ -7,12 +7,16 @@ import com.teo.foodzzzbackend.security.service.UserDetailsServiceImpl;
 import org.hibernate.annotations.Tables;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -56,11 +60,42 @@ public class ManagerService {
     @Autowired
     TableFormRepository tableFormRepository;
 
-    public void updateReservationStatusToDeclined(String reservationId) {
+    @Autowired
+    private JavaMailSender mailSender;
+
+    private void sendReservationEmail(Reservation reservation, Boolean accepted) throws ParseException {
+        String emailText;
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        String reservationDate = formatter.format(reservation.getReservationDate());
+        if(!accepted){
+            emailText = "Ne pare rău să vă anunțăm că managerul restaurantului "+ reservation.getRestaurant().getRestaurantName()
+                    + " a refuzat rezervarea dvs. de la data de "+ reservationDate + " ora "
+                    + reservation.getReservationHour() + ". Te rugăm alege alta data. Multumim pentru înțelegere! ";
+        }else{
+            emailText = "Echipa FoodZzz dorește să vă anunțe că restaurantul "+
+                    reservation.getRestaurant().getRestaurantName()
+                    + " a acceptat rezervarea dvs. de la data de "+ reservationDate + " ora "
+                    + reservation.getReservationHour() + ". Multumim pentru rezervare! ";
+        }
+        SimpleMailMessage email = new SimpleMailMessage();
+
+        String recipientAddress = reservation.getUser().getEmail();
+        email.setTo(recipientAddress);
+        email.setSubject("Rezervare la restaurantul " + reservation.getRestaurant().getRestaurantName());
+        email.setText("Salutare, " + reservation.getUser().getUsername() + " ! \r\n" +
+                emailText);
+        mailSender.send(email);
+    }
+
+    public void updateReservationStatusToDeclined(String reservationId) throws ParseException {
+        Reservation reservation = reservationRepository.findById(Integer.parseInt(reservationId)).get();
+        sendReservationEmail(reservation,false);
         reservationRepository.changeReservationStatusToDeclined(Integer.parseInt(reservationId));
     }
 
-    public void updateReservationStatusToAccepted(String reservationId) {
+    public void updateReservationStatusToAccepted(String reservationId) throws ParseException {
+        Reservation reservation = reservationRepository.findById(Integer.parseInt(reservationId)).get();
+        sendReservationEmail(reservation,true);
         reservationRepository.changeReservationStatusToAccepted(Integer.parseInt(reservationId));
     }
 

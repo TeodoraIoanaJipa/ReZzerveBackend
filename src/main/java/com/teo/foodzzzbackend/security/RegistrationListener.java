@@ -36,6 +36,17 @@ public class RegistrationListener implements
         mailSender.send(email);
     }
 
+    private void sendReservationConfirmation(User user, String subject, String confirmationUrl) {
+        SimpleMailMessage email = new SimpleMailMessage();
+
+        String recipientAddress = user.getEmail();
+        email.setTo(recipientAddress);
+        email.setSubject(subject);
+        email.setText("Bună, " + user.getUsername() + " ! \r\n" +
+                "Te rugam confirmă adresa de email printr-un click aici \n" + confirmationUrl + "\n Multumim! ");
+        mailSender.send(email);
+    }
+
     private void sendConfirmRegistration(OnRegistrationCompleteEvent event) {
         User user = event.getUser();
         String token = UUID.randomUUID().toString();

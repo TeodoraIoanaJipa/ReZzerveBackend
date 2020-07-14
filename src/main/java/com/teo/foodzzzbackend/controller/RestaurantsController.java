@@ -87,7 +87,9 @@ public class RestaurantsController {
     @GetMapping("/reservation/history/pageable")
     @CrossOrigin
     public ResponseEntity<Page<ReservationDTO>> getReservationsPageable(@RequestParam String userId, @RequestParam Optional<String> pageNumber) {
-        return new ResponseEntity<Page<ReservationDTO>>(restaurantService.findAllReservationsByUserIdPageable(userId, pageNumber.orElse("0"), RESERVATIONS_PER_PAGE), HttpStatus.OK);
+        return new ResponseEntity<Page<ReservationDTO>>(
+                restaurantService.findAllReservationsByUserIdPageable(userId,
+                        pageNumber.orElse("0"), RESERVATIONS_PER_PAGE), HttpStatus.OK);
     }
 
     @GetMapping("/reservation/history/restaurant")

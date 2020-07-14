@@ -270,15 +270,23 @@ public class RestaurantService {
     }
 
     public Page<ReservationDTO> checkReviewable(Page<ReservationDTO> reservations) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, -1);
+        Date yesterday = calendar.getTime();
+        
         for (ReservationDTO reservation : reservations) {
-            System.out.println(reservation.toString());
-            if (reservation.getReservationDate().before(new Date()))
-                if (!reviewRepository.findAllByRestaurantIdAndUserIdAndReservation_ReservationId(reservation.getRestaurantId(),
-                        reservation.getUserId(), reservation.getReservationId()).isPresent()) {
-                    reservation.setReviewable(true);
-                } else {
-                    reservation.setReviewable(false);
-                }
+
+            String reservationH = reservation.getReservationHour().split(":")[0];
+            if (reservation.getReservationDate().before(yesterday)
+                || (reservation.getReservationDate().equals(new Date()) && Integer.parseInt(reservationH) < new Date().getHours()))
+                    if (!reviewRepository.findAllByRestaurantIdAndUserIdAndReservation_ReservationId(
+                            reservation.getRestaurantId(),
+                            reservation.getUserId(),
+                            reservation.getReservationId()).isPresent()) {
+                        reservation.setReviewable(true);
+                    } else {
+                        reservation.setReviewable(false);
+                    }
         }
         return reservations;
     }
@@ -378,7 +386,7 @@ public class RestaurantService {
     }
 
 
-    public int searchRestaurantsPagesCount(String searchText, int resultsPerPage) {
+    public int searchRestaurantsPagesCount(String searchText, long resultsPerPage) {
         long userCount = searchRestaurantsTotalCount(searchText);
         int i = (int) Math.floorDiv(userCount, resultsPerPage) + 1;
         return i;

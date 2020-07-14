@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 
+import java.text.ParseException;
 import java.util.*;
 
 @RestController
@@ -93,14 +94,14 @@ public class ManagerController {
 
     @PutMapping("/reservations/decline")
     @CrossOrigin
-    public ResponseEntity<String> updateReservationStatusToDeclined(@RequestParam String reservationId) {
+    public ResponseEntity<String> updateReservationStatusToDeclined(@RequestParam String reservationId) throws ParseException {
         managerService.updateReservationStatusToDeclined(reservationId);
         return new ResponseEntity<>("success", HttpStatus.OK);
     }
 
     @PutMapping("/reservations/accept")
     @CrossOrigin
-    public ResponseEntity<String> updateReservationStatusToAccepted(@RequestParam String reservationId) {
+    public ResponseEntity<String> updateReservationStatusToAccepted(@RequestParam String reservationId) throws ParseException {
         managerService.updateReservationStatusToAccepted(reservationId);
         return new ResponseEntity<>("success", HttpStatus.OK);
     }
