@@ -28,10 +28,15 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     List<ReservationDTO> findAllReservationsAndRestaurantsByUserIdAndRestaurantId(Long id, Integer restaurantId, Integer reservationId);
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
-            "res.reservationHour,res.tableNumber,r.id, r.restaurantName, res.user.id) "
+            "res.reservationHour, res.tableNumber,r.id, r.restaurantName, res.user.id) "
             + "FROM Reservation res LEFT JOIN res.restaurant r where res.user.id = ?1 " +
             "ORDER BY res.reservationDate desc, res.reservationHour desc")
     List<ReservationDTO> findAllReservationsAndRestaurantsByUserId(Long id);
+
+    @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
+            "res.reservationHour, res.tableNumber,r.id, r.restaurantName, res.user.id) "
+            + "FROM Reservation res LEFT JOIN res.restaurant r where res.reservationDate > current_date()")
+    List<ReservationDTO> findAllReservationsForConfirmation();
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
             "res.reservationHour,res.tableNumber,r.id, r.restaurantName, res.user.id) "
@@ -40,7 +45,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     Page<ReservationDTO> findAllReservationsAndRestaurantsByUserId(Long id, Pageable pageable);
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
-            "res.reservationHour,res.tableNumber,r.id, r.restaurantName, res.user.id) "
+            "res.reservationHour, res.tableNumber,r.id, r.restaurantName, res.user.id) "
             + "FROM Reservation res LEFT JOIN res.restaurant r where r.id = ?1 and res.reservationDate = ?2 " +
             "and res.reservationHour = ?3 ORDER BY res.reservationHour desc")
     List<ReservationDTO> findAllReservationsByRestaurantIdAndReservationDate(Integer id,
@@ -49,7 +54,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
     Optional<List<Reservation>> findAllByRestaurantIdOrderByReservationDateDesc(int id);
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
-            "res.reservationHour,res.tableNumber,r.id, r.restaurantName, res.user.id) "
+            "res.reservationHour, res.tableNumber,r.id, r.restaurantName, res.user.id) "
             + "FROM Reservation res LEFT JOIN res.restaurant r where res.user.id = ?1 " +
             "and res.reservationId in (select max(r.reservationId) " +
             "FROM Reservation r " +

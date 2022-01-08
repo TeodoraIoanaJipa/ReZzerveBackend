@@ -34,6 +34,9 @@ public class Reservation {
     @Column(name = "status")
     private String reservationStatus;
 
+    @Column(name = "reservation_status")
+    private ReservationConfirmationStatus reservationConfirmationStatus;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "restaurant_id", nullable = false)
     @OnDelete(action = OnDeleteAction.NO_ACTION)

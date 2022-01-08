@@ -6,21 +6,23 @@ import com.teo.foodzzzbackend.security.payload.response.MessageResponse;
 import com.teo.foodzzzbackend.security.service.UserDetailsServiceImpl;
 import org.hibernate.annotations.Tables;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ManagerService {
@@ -62,6 +64,21 @@ public class ManagerService {
 
     @Autowired
     private JavaMailSender mailSender;
+
+    public void sendSimpleMessage(
+            String to, String subject, String text) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        helper.setFrom("jipa.ioana.teodora@gmail.com");
+        helper.setTo(to);
+
+        // use the true flag to indicate the text included is HTML
+        helper.setText(text, true);
+        helper.setSubject(subject);
+
+        mailSender.send(message);
+    }
 
     private void sendReservationEmail(Reservation reservation, Boolean accepted) throws ParseException {
         String emailText;
@@ -114,7 +131,8 @@ public class ManagerService {
     @Transactional
     public List<TableForm> saveTables(List<TableFormDTO> tables, String restaurantId,
                                       String width, String height) {
-        restaurantRepository.updateRestaurantWidthAndHeight(Integer.parseInt(restaurantId), Integer.parseInt(width), Integer.parseInt(height));
+        restaurantRepository.updateRestaurantWidthAndHeight(Integer.parseInt(restaurantId), Integer.parseInt(width),
+                Integer.parseInt(height));
         List<TableForm> savedTables = new ArrayList<>();
         if (tables != null && tables.size() >= 1)
             tableFormRepository.deleteByRestaurantId(tables.get(0).getRestaurantId());

@@ -273,12 +273,12 @@ public class RestaurantService {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, -1);
         Date yesterday = calendar.getTime();
-        
+
         for (ReservationDTO reservation : reservations) {
 
             String reservationH = reservation.getReservationHour().split(":")[0];
             if (reservation.getReservationDate().before(yesterday)
-                || (reservation.getReservationDate().equals(new Date()) && Integer.parseInt(reservationH) < new Date().getHours()))
+                || (reservation.getReservationDate().equals(new Date()) && (Integer.parseInt(reservationH) < new Date().getHours())))
                     if (!reviewRepository.findAllByRestaurantIdAndUserIdAndReservation_ReservationId(
                             reservation.getRestaurantId(),
                             reservation.getUserId(),
@@ -310,8 +310,7 @@ public class RestaurantService {
 
     public Page<ReservationDTO> findAllReservationsByUserIdPageable(String userId, String page, Integer pageSize) {
         Pageable pageable = PageRequest.of(Integer.parseInt(page) - 1, pageSize);
-//        Page<ReservationDTO> pages = reservationRepository.findAllReservationsAndRestaurantsByUserId(Long.valueOf(userId), pageable);
-//            checkReviewable(pages);
+
         Page<ReservationDTO> reservations = reservationRepository.findAllByUserIdPageable(Long.valueOf(userId), pageable);
         return checkReviewable(reservations);
     }

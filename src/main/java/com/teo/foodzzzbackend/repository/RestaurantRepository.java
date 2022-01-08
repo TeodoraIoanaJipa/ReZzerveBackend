@@ -58,7 +58,6 @@ public interface RestaurantRepository extends JpaRepository<Restaurant, Integer>
             " order by res.addedDate desc")
     Page<RestaurantDTO> findAllRestaurantsPageableOrderByDate(Pageable pageable);
 
-
 }
 
 
