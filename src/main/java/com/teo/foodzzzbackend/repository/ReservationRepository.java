@@ -35,7 +35,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
             "res.reservationHour, res.tableNumber,r.id, r.restaurantName, res.user.id) "
-            + "FROM Reservation res LEFT JOIN res.restaurant r where res.reservationDate > current_date()")
+            + "FROM Reservation res LEFT JOIN res.restaurant r where res.reservationDate > current_date()" +
+            " and res.reservationConfirmationStatus is null")
     List<ReservationDTO> findAllReservationsForConfirmation();
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +

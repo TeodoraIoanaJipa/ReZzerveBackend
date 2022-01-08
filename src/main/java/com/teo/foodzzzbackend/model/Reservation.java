@@ -121,4 +121,11 @@ public class Reservation {
         this.reservationStatus = reservationStatus;
     }
 
+    public ReservationConfirmationStatus getReservationConfirmationStatus() {
+        return reservationConfirmationStatus;
+    }
+
+    public void setReservationConfirmationStatus(ReservationConfirmationStatus reservationConfirmationStatus) {
+        this.reservationConfirmationStatus = reservationConfirmationStatus;
+    }
 }

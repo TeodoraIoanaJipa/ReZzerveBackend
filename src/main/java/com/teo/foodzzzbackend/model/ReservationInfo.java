@@ -3,10 +3,19 @@ package com.teo.foodzzzbackend.model;
 import java.util.Date;
 
 public class ReservationInfo {
+    private Integer id;
     private String username;
     private String email;
     private String restaurantName;
     private Date reservationDate;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getUsername() {
         return username;

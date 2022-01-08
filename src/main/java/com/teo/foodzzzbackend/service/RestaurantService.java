@@ -415,4 +415,27 @@ public class RestaurantService {
         return reviewRepository.save(newReview);
     }
 
+    public Reservation confirmReservation(Integer reservationId) {
+        Optional<Reservation> reservation = reservationRepository.findById(reservationId);
+        if (reservation.isPresent()) {
+            Reservation foundReservation = reservation.get();
+            foundReservation.setReservationConfirmationStatus(ReservationConfirmationStatus.CONFIRMED);
+            reservationRepository.save(foundReservation);
+            return foundReservation;
+        }
+        return null;
+    }
+
+
+    public Reservation declineReservation(Integer reservationId) {
+        Optional<Reservation> reservation = reservationRepository.findById(reservationId);
+        if (reservation.isPresent()) {
+            Reservation foundReservation = reservation.get();
+            foundReservation.setReservationConfirmationStatus(ReservationConfirmationStatus.DECLINED);
+            reservationRepository.save(foundReservation);
+            return foundReservation;
+        }
+        return null;
+    }
+
 }

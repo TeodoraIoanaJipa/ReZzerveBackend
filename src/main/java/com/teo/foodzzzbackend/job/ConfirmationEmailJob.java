@@ -7,13 +7,20 @@ import com.teo.foodzzzbackend.repository.ReservationRepository;
 import com.teo.foodzzzbackend.repository.UserRepository;
 import com.teo.foodzzzbackend.service.ManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.mail.MessagingException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class ConfirmationEmailJob {
@@ -26,23 +33,24 @@ public class ConfirmationEmailJob {
     @Autowired
     private ManagerService managerService;
 
-    public ConfirmationEmailJob() {
-    }
+    @Value("classpath:data/confirmation-message.html")
+    private Resource resourceFile;
 
-    private List<ReservationDTO> findAllReservations() {
+    private List<ReservationDTO> findAllReservationsForConfirmation() {
         return reservationRepository.findAllReservationsForConfirmation();
     }
 
     private List<ReservationInfo> findAllReservationInfos() {
         List<ReservationInfo> reservations = new ArrayList<>();
 
-        List<ReservationDTO> reservationDTOS = findAllReservations();
+        List<ReservationDTO> reservationDTOS = findAllReservationsForConfirmation();
         for (ReservationDTO reservationDTO : reservationDTOS) {
 
             Optional<User> user = userRepository.findById(reservationDTO.getUserId());
             if (user.isPresent()) {
                 ReservationInfo reservationInfo = new ReservationInfo();
                 User user1 = user.get();
+                reservationInfo.setId(reservationDTO.getReservationId());
                 reservationInfo.setEmail(user1.getEmail());
                 reservationInfo.setUsername(user1.getUsername());
                 reservationInfo.setReservationDate(reservationDTO.getReservationDate());
@@ -55,19 +63,22 @@ public class ConfirmationEmailJob {
     }
 
     @Scheduled(cron = "${cron.expression.confirmation.job}")
-    public void cronJobSch() throws MessagingException {
+    public void cronJobSch() throws MessagingException, IOException {
         List<ReservationInfo> reservationInfos = findAllReservationInfos();
 
+        InputStream resource = resourceFile.getInputStream();
+        String message;
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(resource))) {
+            message = reader.lines()
+                    .collect(Collectors.joining("\n"));
+        }
+
         for (ReservationInfo reservation : reservationInfos) {
-            String msg = "<html>" +
-                    "<body>" +
-                    "<h4>Buna ziua,<b> " + reservation.getUsername() + " </b> ! <br></h4>" +
-                    "<div>" +
-                    "   Va multumim pentru rezervarea dumneavoastra la <b> " + reservation.getRestaurantName() + " </b>"
-                    + ". <br> Va rugam sa confirmati rezervarea cu un click pe urmatorul link. Va multumim! " +
-                    "</div>" +
-                    "</body>" +
-                    "</html>";
+            String msg = message
+                    .replace("{0}", reservation.getUsername())
+                    .replace("{1}", reservation.getRestaurantName())
+                    .replace("{2}", reservation.getId().toString());
 
             managerService.sendSimpleMessage(reservation.getEmail(), "Rezervare la " + reservation.getRestaurantName(), msg);
         }

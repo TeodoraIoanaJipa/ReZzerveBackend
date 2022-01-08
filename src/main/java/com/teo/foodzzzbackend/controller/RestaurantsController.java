@@ -100,12 +100,6 @@ public class RestaurantsController {
         return new ResponseEntity<List<ReservationDTO>>(restaurantService.findAllReservationsByUserIdAndRestaurantId(userId, restaurantId, reservationId), HttpStatus.OK);
     }
 
-    @PostMapping(path = "/reservation/save", consumes = "application/json")
-    @CrossOrigin
-    public Reservation saveReservation(@RequestBody ReservationDTO reservation) {
-        return (restaurantService.postReservation(reservation));
-    }
-
     @GetMapping("/reservation/available")
     @CrossOrigin
     public List<ReservationDTO> getAllReservationsByRestaurantIdReservationDateAndReservationHour(
