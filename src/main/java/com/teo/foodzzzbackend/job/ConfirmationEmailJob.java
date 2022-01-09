@@ -1,8 +1,6 @@
 package com.teo.foodzzzbackend.job;
 
-import com.teo.foodzzzbackend.model.ReservationDTO;
-import com.teo.foodzzzbackend.model.ReservationInfo;
-import com.teo.foodzzzbackend.model.User;
+import com.teo.foodzzzbackend.model.*;
 import com.teo.foodzzzbackend.repository.ReservationRepository;
 import com.teo.foodzzzbackend.repository.UserRepository;
 import com.teo.foodzzzbackend.service.ManagerService;
@@ -62,6 +60,18 @@ public class ConfirmationEmailJob {
         return reservations;
     }
 
+    private void cancelReservationsNotConfirmed() {
+        List<ReservationDTO> reservationDTOS = reservationRepository.findAllReservationsForCancelation();
+        for (ReservationDTO reservationDTO : reservationDTOS) {
+            Optional<Reservation> reservation = reservationRepository.findById(reservationDTO.getReservationId());
+            if (reservation.isPresent()) {
+                Reservation declinedReservation = reservation.get();
+                declinedReservation.setReservationConfirmationStatus(ReservationConfirmationStatus.DECLINED);
+                reservationRepository.save(declinedReservation);
+            }
+        }
+    }
+
     @Scheduled(cron = "${cron.expression.confirmation.job}")
     public void cronJobSch() throws MessagingException, IOException {
         List<ReservationInfo> reservationInfos = findAllReservationInfos();
@@ -82,6 +92,8 @@ public class ConfirmationEmailJob {
 
             managerService.sendSimpleMessage(reservation.getEmail(), "Rezervare la " + reservation.getRestaurantName(), msg);
         }
-        System.out.println("Java cron job expression:: " + reservationInfos);
+
+        cancelReservationsNotConfirmed();
+        System.out.println("Job expression:: " + reservationInfos);
     }
 }

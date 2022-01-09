@@ -88,41 +88,9 @@ public class RestaurantService {
     public Page<RestaurantDTO> findAllRestaurantsPageable(String userId, String orderBy, String page, Integer pageSize) {
         int orderType = Integer.parseInt(orderBy);
         PageRequest pageRequest = PageRequest.of(Integer.parseInt(page) - 1, pageSize);
-        JSONArray array;
 
         if (orderType == 3 || orderType == 4) {
-            try {
-                JSONObject object;
-                if (orderType == 4) {
-                    object = new JSONObject(getCollaborativeRecommendationFromAPI(Long.parseLong(userId)));
-                } else {
-                    object = new JSONObject(getRestaurantsFromPyhtonAPI(Long.parseLong(userId)));
-                }
-
-                array = object.getJSONArray("restaurant_ids");
-                ArrayList<RestaurantDTO> recommendedRestaurants = new ArrayList<>();
-                List<Object> recommendationsFromPyhton = array.toList();
-                int total = array.toList().size();
-                int start = (Integer.parseInt(page) - 1) * pageRequest.getPageSize();
-                int end = Math.min((start + pageRequest.getPageSize()), total);
-                for (int i = start; i < end; i++) {
-                    Object restaurantId = recommendationsFromPyhton.get(i);
-                    RestaurantDTO restaurantDTO = findRestaurantDTOById(restaurantId.toString());
-                    List<Restaurant> list = new ArrayList<>();
-                    list.add(restaurantRepository.findById(restaurantDTO.getId()).orElse(null));
-                    Optional<KitchenType> kt = kitchenTypeRepository.findFirstByRestaurantsIn(list);
-                    restaurantDTO.setKitchenType(kt.orElse(null));
-                    recommendedRestaurants.add(restaurantDTO);
-                }
-
-                return new PageImpl<>(
-                        recommendedRestaurants,
-                        pageRequest,
-                        total
-                );
-            } catch (Exception exception) {
                 return getRestaurantsByName(page, pageSize);
-            }
         } else {
             Pageable firstPage = PageRequest.of(Integer.parseInt(page) - 1, pageSize);
             Page<RestaurantDTO> restaurantDTOS;
@@ -168,9 +136,6 @@ public class RestaurantService {
         List<RestaurantDTO> restaurantDTOS = new ArrayList<>();
 
         for (Restaurant restaurant : allRestaurants) {
-//            List<Review> reviews = findAllReviewsByRestaurantId(restaurant.getId());
-//            Double rating = getRestaurantRating(restaurant.getId(), reviews);
-//            restaurant.setRating(rating);
             RestaurantDTO restaurantDTO = findRestaurantDTOById(restaurant.getId().toString());
             List<Restaurant> list = new ArrayList<>();
             list.add(restaurant);
@@ -201,7 +166,7 @@ public class RestaurantService {
         List<Review> reviews = new ArrayList<>();
         if (allReviews.isPresent()) {
             reviews = allReviews.get();
-            Collections.sort(reviews, (o1, o2) -> o1.getRating() - o2.getRating());
+            Collections.sort(reviews, Comparator.comparingInt(Review::getRating));
         }
         for (Review review : reviews) {
             review.setUsername(review.getUser().getUsername());
@@ -212,7 +177,7 @@ public class RestaurantService {
     private Double getRestaurantRating(Integer restaurantId, List<Review> reviews) {
         Map<Integer, Integer> starsRatingMap = getStarsRatingMap(reviews);
         double weightedAverage = 0.0;
-        Integer weightedSum = 0;
+        int weightedSum = 0;
         for (Map.Entry<Integer, Integer> pair : starsRatingMap.entrySet()) {
             weightedAverage += pair.getKey() * pair.getValue();
             weightedSum += pair.getValue();
@@ -230,9 +195,10 @@ public class RestaurantService {
         List<Review> reviews = findAllReviewsByRestaurantId(id);
 
         Double rating = getRestaurantRating(id, reviews);
-
-        restaurant.get().setRating(Double.parseDouble(String.format("%.2f", rating)));
-        restaurant.get().setReviews(reviews);
+        if(restaurant.isPresent()){
+            restaurant.get().setRating(Double.parseDouble(String.format("%.2f", rating)));
+            restaurant.get().setReviews(reviews);
+        }
         return restaurant.orElse(null);
     }
 
@@ -323,6 +289,7 @@ public class RestaurantService {
         newReservation.setTableNumber(reservation.getTableNumber());
         newReservation.setReservationStatus("pending");
         newReservation.setRequestedDate(new Date());
+        newReservation.setReservationConfirmationStatus(ReservationConfirmationStatus.IN_PROGRESS);
         Optional<Restaurant> restaurant = restaurantRepository.findById(reservation.getRestaurantId());
         restaurant.ifPresent(newReservation::setRestaurant);
         if (userRepository.findById(reservation.getUserId()).isPresent())

@@ -35,9 +35,16 @@ public interface ReservationRepository extends JpaRepository<Reservation, Intege
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
             "res.reservationHour, res.tableNumber,r.id, r.restaurantName, res.user.id) "
-            + "FROM Reservation res LEFT JOIN res.restaurant r where res.reservationDate > current_date()" +
-            " and res.reservationConfirmationStatus is null")
+            + "FROM Reservation res LEFT JOIN res.restaurant r where res.reservationDate >= current_date()" +
+            " and (res.reservationConfirmationStatus is null or res.reservationConfirmationStatus = 0)")
     List<ReservationDTO> findAllReservationsForConfirmation();
+
+    @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
+            "res.reservationHour, res.tableNumber,r.id, r.restaurantName, res.user.id) "
+            + "FROM Reservation res LEFT JOIN res.restaurant r where (res.reservationDate < current_date() " +
+            " or (res.reservationDate = current_date() and hour(current_time())+3 > SUBSTRING(res.reservationHour, 0, 2) ) )" +
+            " and (res.reservationConfirmationStatus is null or res.reservationConfirmationStatus = 0)")
+    List<ReservationDTO> findAllReservationsForCancelation();
 
     @Query("SELECT new com.teo.foodzzzbackend.model.ReservationDTO(res.reservationId, res.reservationDate, res.numberOfPersons, " +
             "res.reservationHour,res.tableNumber,r.id, r.restaurantName, res.user.id) "
