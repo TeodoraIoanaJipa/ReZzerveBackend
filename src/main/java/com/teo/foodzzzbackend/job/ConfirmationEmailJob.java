@@ -15,13 +15,20 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Component
 public class ConfirmationEmailJob {
+
+    private Logger logger = Logger.getLogger(ConfirmationEmailJob.class.getName()); ;
+
     @Autowired
     private ReservationRepository reservationRepository;
 
@@ -34,23 +41,26 @@ public class ConfirmationEmailJob {
     @Value("classpath:data/confirmation-message.html")
     private Resource resourceFile;
 
+    @Value("${app.url}")
+    private String appURL;
+
     private List<ReservationDTO> findAllReservationsForConfirmation() {
         return reservationRepository.findAllReservationsForConfirmation();
     }
 
-    private List<ReservationInfo> findAllReservationInfos() {
+    private List<ReservationInfo> findAllReservationThatNeedConfirmation() {
         List<ReservationInfo> reservations = new ArrayList<>();
 
         List<ReservationDTO> reservationDTOS = findAllReservationsForConfirmation();
-        for (ReservationDTO reservationDTO : reservationDTOS) {
 
+        for (ReservationDTO reservationDTO : reservationDTOS) {
             Optional<User> user = userRepository.findById(reservationDTO.getUserId());
             if (user.isPresent()) {
                 ReservationInfo reservationInfo = new ReservationInfo();
-                User user1 = user.get();
+                User foundUser = user.get();
                 reservationInfo.setId(reservationDTO.getReservationId());
-                reservationInfo.setEmail(user1.getEmail());
-                reservationInfo.setUsername(user1.getUsername());
+                reservationInfo.setEmail(foundUser.getEmail());
+                reservationInfo.setUsername(foundUser.getUsername());
                 reservationInfo.setReservationDate(reservationDTO.getReservationDate());
                 reservationInfo.setRestaurantName(reservationDTO.getRestaurantName());
                 reservations.add(reservationInfo);
@@ -60,21 +70,9 @@ public class ConfirmationEmailJob {
         return reservations;
     }
 
-    private void cancelReservationsNotConfirmed() {
-        List<ReservationDTO> reservationDTOS = reservationRepository.findAllReservationsForCancelation();
-        for (ReservationDTO reservationDTO : reservationDTOS) {
-            Optional<Reservation> reservation = reservationRepository.findById(reservationDTO.getReservationId());
-            if (reservation.isPresent()) {
-                Reservation declinedReservation = reservation.get();
-                declinedReservation.setReservationConfirmationStatus(ReservationConfirmationStatus.DECLINED);
-                reservationRepository.save(declinedReservation);
-            }
-        }
-    }
-
     @Scheduled(cron = "${cron.expression.confirmation.job}")
     public void cronJobSch() throws MessagingException, IOException {
-        List<ReservationInfo> reservationInfos = findAllReservationInfos();
+        List<ReservationInfo> reservationInfos = findAllReservationThatNeedConfirmation();
 
         InputStream resource = resourceFile.getInputStream();
         String message;
@@ -83,17 +81,40 @@ public class ConfirmationEmailJob {
             message = reader.lines()
                     .collect(Collectors.joining("\n"));
         }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
 
         for (ReservationInfo reservation : reservationInfos) {
+            String confirmReservationLink = this.appURL + "rezerve/reservation/reservationConfirm/" + reservation.getId().toString() + "?isConfirmed=true";
+            String cancelReservationLink = this.appURL + "rezerve/reservation/reservationConfirm/" + reservation.getId().toString() + "?isConfirmed=false";
+            String reservationDate = format.format(reservation.getReservationDate());
             String msg = message
                     .replace("{0}", reservation.getUsername())
                     .replace("{1}", reservation.getRestaurantName())
-                    .replace("{2}", reservation.getId().toString());
+                    .replace("{2}", reservationDate)
+                    .replace("{3}", confirmReservationLink)
+                    .replace("{4}", cancelReservationLink);
 
             managerService.sendSimpleMessage(reservation.getEmail(), "Rezervare la " + reservation.getRestaurantName(), msg);
         }
 
-        cancelReservationsNotConfirmed();
+
         System.out.println("Job expression:: " + reservationInfos);
+    }
+
+    @Scheduled(cron = "${cron.expression.cancel.reservation.job}")
+    public void cronJobCancelReservations() throws MessagingException, IOException {
+        logger.log(Level.INFO, "Canceled reservations not confirmed");
+
+        List<ReservationDTO> reservationDTOS = reservationRepository.findAllReservationsForCancelation();
+
+        for (ReservationDTO reservationDTO : reservationDTOS) {
+            Optional<Reservation> reservation = reservationRepository.findById(reservationDTO.getReservationId());
+            if (reservation.isPresent()) {
+                Reservation declinedReservation = reservation.get();
+                declinedReservation.setReservationConfirmationStatus(ReservationConfirmationStatus.DECLINED);
+                reservationRepository.save(declinedReservation);
+            }
+        }
     }
 }

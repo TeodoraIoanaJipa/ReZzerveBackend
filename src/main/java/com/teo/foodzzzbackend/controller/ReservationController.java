@@ -1,10 +1,8 @@
 package com.teo.foodzzzbackend.controller;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
+
 import com.teo.foodzzzbackend.model.Reservation;
 import com.teo.foodzzzbackend.model.ReservationDTO;
-import com.teo.foodzzzbackend.model.User;
-import com.teo.foodzzzbackend.model.VerificationToken;
 import com.teo.foodzzzbackend.security.payload.response.MessageResponse;
 import com.teo.foodzzzbackend.service.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Calendar;
-
 @RestController
-@RequestMapping("/api/foodz/reservation")
+@RequestMapping("/api/rezerve/reservation")
 public class ReservationController {
 
     @Autowired

@@ -16,7 +16,7 @@ import java.util.Optional;
 
 
 @RestController
-@RequestMapping("/api/foodz")
+@RequestMapping("/api/rezerve")
 public class RestaurantsController {
 
     public static final int RESTAURANTS_PER_PAGE = 12;
