@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 @RestController
 @RequestMapping("/api/manager")
 public class ManagerController {
-    private Logger logger = Logger.getLogger(ManagerController.class.getName());
+    private final Logger logger = Logger.getLogger(ManagerController.class.getName());
 
     @Autowired
     private RestaurantService restaurantService;
@@ -129,19 +129,24 @@ public class ManagerController {
     @PreAuthorize("hasRole('ROLE_MANAGER') or hasRole('ROLE_ADMIN')")
     @CrossOrigin
     public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file, @RequestParam String restaurantId) {
-        if (managerService.checkFilesNumberSmallerThanTen(restaurantId) < 10) {
-            Images dbFile = managerService.storeFile(file, restaurantId);
+        try {
+            if (managerService.checkFilesNumberSmallerThanTen(restaurantId) < 10) {
+                Images dbFile = managerService.storeFile(file, restaurantId);
 
-            String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("/downloadFile/")
-                    .path(dbFile.getId().toString())
-                    .toUriString();
+                String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                        .path("/downloadFile/")
+                        .path(dbFile.getId().toString())
+                        .toUriString();
 
-            return ResponseEntity.ok(new UploadFileResponse(dbFile.getFileName(), fileDownloadUri,
-                    file.getContentType(), file.getSize()));
-        } else {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Numarul maxim de imagini a fost atins."));
+                return ResponseEntity.ok(new UploadFileResponse(dbFile.getFileName(), fileDownloadUri,
+                        file.getContentType(), file.getSize()));
+            } else {
+                return ResponseEntity.badRequest()
+                        .body(new MessageResponse("Numarul maxim de imagini a fost atins."));
+            }
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/restaurant/upload-file could not upload picture. " + exception.getMessage());
+            return new ResponseEntity("Could not upload picture.", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -166,7 +171,12 @@ public class ManagerController {
     @DeleteMapping("/restaurant/delete-file")
     @CrossOrigin
     public ResponseEntity<?> deleteFile(@RequestParam String fileId) {
-        managerService.deleteFile(fileId);
-        return ResponseEntity.ok(new MessageResponse("Imagine stearsa cu succes!"));
+        try {
+            managerService.deleteFile(fileId);
+            return ResponseEntity.ok(new MessageResponse("Imagine stearsa cu succes!"));
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/restaurant/upload-file could not upload picture. " + exception.getMessage());
+            return new ResponseEntity("Could not upload picture.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

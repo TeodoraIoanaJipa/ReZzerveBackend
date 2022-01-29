@@ -254,7 +254,5 @@ public class ManagerService {
         } catch (RuntimeException exception) {
             return ResponseEntity.badRequest().body(new MessageResponse(exception.getMessage()));
         }
-
-
     }
 }

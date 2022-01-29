@@ -1,6 +1,7 @@
 package com.teo.foodzzzbackend.controller;
 
 import com.teo.foodzzzbackend.model.*;
+import com.teo.foodzzzbackend.model.dto.RestaurantDto;
 import com.teo.foodzzzbackend.service.RestaurantService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +14,14 @@ import org.springframework.web.bind.annotation.*;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 @RestController
 @RequestMapping("/api/rezerve")
 public class RestaurantsController {
+    private final Logger logger = Logger.getLogger(RestaurantsController.class.getName());
 
     public static final int RESTAURANTS_PER_PAGE = 12;
     public static final int RESERVATIONS_PER_PAGE = 6;
@@ -30,7 +34,12 @@ public class RestaurantsController {
     public ResponseEntity<Page<RestaurantDTO>> getAllRestaurants(@RequestParam String userId,
                                                                  @RequestParam String orderBy,
                                                                  @RequestParam Optional<String> pageNumber) {
-        return new ResponseEntity<>(restaurantService.findAllRestaurantsPageable(userId, orderBy, pageNumber.orElse("0"), RESTAURANTS_PER_PAGE), HttpStatus.OK);
+        try {
+            return new ResponseEntity<Page<RestaurantDTO>>(restaurantService.findAllRestaurantsPageable(userId, orderBy, pageNumber.orElse("0"), RESTAURANTS_PER_PAGE), HttpStatus.OK);
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/restaurants/all - Could not fetch restaurants. " + exception.getMessage());
+            return new ResponseEntity("Could not fetch restaurants.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/restaurants/search")
@@ -56,20 +65,59 @@ public class RestaurantsController {
 
     @GetMapping("/restaurants/find")
     @CrossOrigin
-    public Restaurant getRestaurant(@RequestParam String restaurantId) {
-        return (restaurantService.findRestaurantById(restaurantId));
+    public ResponseEntity<Restaurant> getRestaurant(@RequestParam String restaurantId) {
+        try {
+            return new ResponseEntity<Restaurant>(restaurantService.findRestaurantById(restaurantId), HttpStatus.OK);
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/restaurants/find - Could not fetch restaurant " + restaurantId + "  " + exception.getMessage());
+            return new ResponseEntity("Could not fetch restaurant.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @GetMapping("/restaurants/keywords")
+    @GetMapping("/restaurants/details")
     @CrossOrigin
-    public List<Tag> getTags(@RequestParam String restaurantId) {
-        return (restaurantService.findAllTagsByRestaurantId(restaurantId));
+    public ResponseEntity<RestaurantDto> getRestaurantDetails(@RequestParam String restaurantId) {
+        try {
+            Restaurant restaurant = restaurantService.findRestaurantById(restaurantId);
+            List<Tag> tags = restaurantService.findAllTagsByRestaurantId(restaurantId);
+            List<Review> reviews = restaurantService.findAllReviewsByRestaurantId(Integer.parseInt(restaurantId));
+            List<TableForm> tables = restaurantService.findTableFormsByRestaurantId(restaurantId);
+
+            RestaurantDto restaurantDto = new RestaurantDto();
+            restaurantDto.setId(restaurant.getId());
+            restaurantDto.setRestaurantName(restaurant.getRestaurantName());
+            restaurantDto.setDescription(restaurant.getDescription());
+            restaurantDto.setOpensAt(restaurant.getOpensAt());
+            restaurantDto.setClosesAt(restaurant.getClosesAt());
+            restaurantDto.setPrice(restaurant.getPrice());
+            restaurantDto.setKitchenTypes(restaurant.getKitchenTypes());
+            restaurantDto.setLocalTypes(restaurant.getLocalTypes());
+            restaurantDto.setAddress(restaurant.getAddress());
+            restaurantDto.setImages(restaurant.getImages());
+            restaurantDto.setWidth(restaurant.getWidth());
+            restaurantDto.setHeight(restaurant.getHeight());
+            restaurantDto.setRating(restaurant.getRating());
+
+            restaurantDto.setTags(tags);
+            restaurantDto.setReviews(reviews);
+            restaurantDto.setTables(tables);
+
+            return new ResponseEntity<RestaurantDto>(restaurantDto, HttpStatus.OK);
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/restaurants/details - Could not get details for " + restaurantId + "  " + exception.getMessage());
+            return new ResponseEntity("Error ", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/restaurants/reviews")
     @CrossOrigin
-    public List<Review> getReviews(@RequestParam String restaurantId) {
-        return (restaurantService.findAllReviewsByRestaurantId(Integer.parseInt(restaurantId)));
+    public ResponseEntity<List<Review>> getReviews(@RequestParam String restaurantId) {
+        try {
+            return new ResponseEntity<List<Review>>(restaurantService.findAllReviewsByRestaurantId(Integer.parseInt(restaurantId)), HttpStatus.OK);
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/restaurants/keywords - Could not fetch keywords for " + restaurantId + "  " + exception.getMessage());
+            return new ResponseEntity("Error ", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @GetMapping("/restaurants/table-forms")

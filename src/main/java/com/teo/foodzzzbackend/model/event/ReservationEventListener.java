@@ -24,6 +24,9 @@ public class ReservationEventListener {
             ReservationStatus reservationStatus = event.getReservationStatus();
             if (reservationStatus != null) {
                 emailService.sendReservationUpdatedByManagerEmail(event.getReservation(), reservationStatus);
+                if (event.getReservation().getUser() != null) {
+                    logger.debug("ReservationEventListener - Reservation notification sent to user " + event.getReservation().getUser().getUsername());
+                }
             }
         } catch (Exception exception) {
             logger.error("ReservationEventListener - Could not send email to user : " + event.getReservation().getUser());
