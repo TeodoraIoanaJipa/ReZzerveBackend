@@ -3,6 +3,7 @@ package com.teo.foodzzzbackend.controller;
 
 import com.teo.foodzzzbackend.model.Reservation;
 import com.teo.foodzzzbackend.model.ReservationDTO;
+import com.teo.foodzzzbackend.model.exception.ReservationStatusAlreadyChangedException;
 import com.teo.foodzzzbackend.security.payload.response.MessageResponse;
 import com.teo.foodzzzbackend.service.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,9 @@ public class ReservationController {
             String message = isConfirmed ? "Rezervarea dvs la restaurantul " + reservation.getRestaurant().getRestaurantName() + " a fost confirmata. Va multumim! " :
                     "Rezervarea dvs la restaurantul " + reservation.getRestaurant().getRestaurantName() + " a fost anulata. Vă mulțumim! ";
 
-            return ResponseEntity.ok(new MessageResponse(message));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(message));
+        } catch (ReservationStatusAlreadyChangedException exception) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(exception.getMessage()));
         } catch (Exception exception) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Token-ul este invalid."));
         }

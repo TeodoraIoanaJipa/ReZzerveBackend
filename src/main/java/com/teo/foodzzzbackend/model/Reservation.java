@@ -128,4 +128,20 @@ public class Reservation {
     public void setReservationConfirmationStatus(ReservationConfirmationStatus reservationConfirmationStatus) {
         this.reservationConfirmationStatus = reservationConfirmationStatus;
     }
+
+    @Override
+    public String toString() {
+        return "Reservation{" +
+                "reservationId=" + reservationId +
+                ", reservationDate=" + reservationDate +
+                ", numberOfPersons=" + numberOfPersons +
+                ", reservationHour='" + reservationHour + '\'' +
+                ", tableNumber='" + tableNumber + '\'' +
+                ", requestedDate=" + requestedDate +
+                ", reservationStatus='" + reservationStatus + '\'' +
+                ", reservationConfirmationStatus=" + reservationConfirmationStatus +
+                ", restaurant=" + restaurant +
+                ", user=" + user +
+                '}';
+    }
 }

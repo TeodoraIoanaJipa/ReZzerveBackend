@@ -3,6 +3,7 @@ package com.teo.foodzzzbackend.job;
 import com.teo.foodzzzbackend.model.*;
 import com.teo.foodzzzbackend.repository.ReservationRepository;
 import com.teo.foodzzzbackend.repository.UserRepository;
+import com.teo.foodzzzbackend.service.EmailService;
 import com.teo.foodzzzbackend.service.ManagerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,23 +12,19 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.mail.MessagingException;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 @Component
 public class ConfirmationEmailJob {
 
-    private Logger logger = Logger.getLogger(ConfirmationEmailJob.class.getName()); ;
+    private Logger logger = Logger.getLogger(ConfirmationEmailJob.class.getName());
 
     @Autowired
     private ReservationRepository reservationRepository;
@@ -37,6 +34,9 @@ public class ConfirmationEmailJob {
 
     @Autowired
     private ManagerService managerService;
+
+    @Autowired
+    private EmailService emailService;
 
     @Value("classpath:data/confirmation-message.html")
     private Resource resourceFile;
@@ -75,18 +75,14 @@ public class ConfirmationEmailJob {
         List<ReservationInfo> reservationInfos = findAllReservationThatNeedConfirmation();
 
         InputStream resource = resourceFile.getInputStream();
-        String message;
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(resource))) {
-            message = reader.lines()
-                    .collect(Collectors.joining("\n"));
-        }
+        String message = emailService.getEmailTemplate(resource);
+
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 
         for (ReservationInfo reservation : reservationInfos) {
-            String confirmReservationLink = this.appURL + "rezerve/reservation/reservationConfirm/" + reservation.getId().toString() + "?isConfirmed=true";
-            String cancelReservationLink = this.appURL + "rezerve/reservation/reservationConfirm/" + reservation.getId().toString() + "?isConfirmed=false";
+            String confirmReservationLink = this.appURL + reservation.getId().toString() + "/true";
+            String cancelReservationLink = this.appURL + reservation.getId().toString() + "/false";
             String reservationDate = format.format(reservation.getReservationDate());
             String msg = message
                     .replace("{0}", reservation.getUsername())
@@ -95,7 +91,7 @@ public class ConfirmationEmailJob {
                     .replace("{3}", confirmReservationLink)
                     .replace("{4}", cancelReservationLink);
 
-            managerService.sendSimpleMessage(reservation.getEmail(), "Rezervare la " + reservation.getRestaurantName(), msg);
+            emailService.sendReservationConfirmationEmail(reservation.getEmail(), "Rezervare la " + reservation.getRestaurantName(), msg);
         }
 
 

@@ -20,16 +20,19 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.text.ParseException;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/api/manager")
 public class ManagerController {
+    private Logger logger = Logger.getLogger(ManagerController.class.getName());
 
     @Autowired
-    RestaurantService restaurantService;
+    private RestaurantService restaurantService;
 
     @Autowired
-    ManagerService managerService;
+    private ManagerService managerService;
 
     @GetMapping("/restaurant")
     @CrossOrigin
@@ -81,8 +84,13 @@ public class ManagerController {
                                         @RequestParam String restaurantId,
                                         @RequestParam String width,
                                         @RequestParam String height) {
-        List<TableForm> tablesSaved = managerService.saveTables(tables, restaurantId, width, height);
-        return ResponseEntity.ok(tablesSaved);
+        try {
+            List<TableForm> tablesSaved = managerService.saveTables(tables, restaurantId, width, height);
+            return ResponseEntity.ok(tablesSaved);
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/restaurant/tables/save could not save tables. " + exception.getMessage());
+            return new ResponseEntity("Could not save tables.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
@@ -95,15 +103,25 @@ public class ManagerController {
     @PutMapping("/reservations/decline")
     @CrossOrigin
     public ResponseEntity<String> updateReservationStatusToDeclined(@RequestParam String reservationId) throws ParseException {
-        managerService.updateReservationStatusToDeclined(reservationId);
-        return new ResponseEntity<>("success", HttpStatus.OK);
+        try {
+            managerService.updateReservationStatus(reservationId, ReservationStatus.DECLINED);
+            return new ResponseEntity<>("success", HttpStatus.OK);
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/reservations/decline could not decline reservation. " + exception.getMessage());
+            return new ResponseEntity("Could not decline reservation.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @PutMapping("/reservations/accept")
     @CrossOrigin
     public ResponseEntity<String> updateReservationStatusToAccepted(@RequestParam String reservationId) throws ParseException {
-        managerService.updateReservationStatusToAccepted(reservationId);
-        return new ResponseEntity<>("success", HttpStatus.OK);
+        try {
+            managerService.updateReservationStatus(reservationId, ReservationStatus.ACCEPTED);
+            return new ResponseEntity<>("success", HttpStatus.OK);
+        } catch (Exception exception) {
+            logger.log(Level.WARNING, "/reservations/decline could not accept reservation. " + exception.getMessage());
+            return new ResponseEntity("Could not accept reservation.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
@@ -126,15 +144,6 @@ public class ManagerController {
                     .body(new MessageResponse("Numarul maxim de imagini a fost atins."));
         }
     }
-
-//    @PostMapping(value = "/uploadMultipleFiles", consumes = { "multipart/form-data", MediaType.APPLICATION_JSON_VALUE })
-//    @CrossOrigin
-//    public List<UploadFileResponse> uploadMultipleFiles(@RequestParam("files") MultipartFile[] files, @RequestParam String restaurantId) {
-//        return Arrays.asList(files)
-//                .stream()
-//                .map(file -> uploadFile(file, restaurantId))
-//                .collect(Collectors.toList());
-//    }
 
     @GetMapping("/restaurant/images")
     @CrossOrigin

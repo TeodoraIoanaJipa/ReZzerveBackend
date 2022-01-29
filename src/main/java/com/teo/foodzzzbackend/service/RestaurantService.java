@@ -1,9 +1,8 @@
 package com.teo.foodzzzbackend.service;
 
 import com.teo.foodzzzbackend.model.*;
+import com.teo.foodzzzbackend.model.exception.ReservationStatusAlreadyChangedException;
 import com.teo.foodzzzbackend.repository.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.FullTextQuery;
 import org.hibernate.search.jpa.Search;
@@ -18,8 +17,6 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.EntityManager;
 import javax.transaction.Transactional;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -166,7 +163,7 @@ public class RestaurantService {
         List<Review> reviews = new ArrayList<>();
         if (allReviews.isPresent()) {
             reviews = allReviews.get();
-            Collections.sort(reviews, Comparator.comparingInt(Review::getRating));
+            reviews.sort(Comparator.comparingInt(Review::getRating));
         }
         for (Review review : reviews) {
             review.setUsername(review.getUser().getUsername());
@@ -354,8 +351,7 @@ public class RestaurantService {
 
     public int searchRestaurantsPagesCount(String searchText, long resultsPerPage) {
         long userCount = searchRestaurantsTotalCount(searchText);
-        int i = (int) Math.floorDiv(userCount, resultsPerPage) + 1;
-        return i;
+        return (int) Math.floorDiv(userCount, resultsPerPage) + 1;
     }
 
     @Transactional
@@ -382,10 +378,19 @@ public class RestaurantService {
         return reviewRepository.save(newReview);
     }
 
-    public Reservation confirmReservation(Integer reservationId) {
+    public Reservation confirmReservation(Integer reservationId) throws ReservationStatusAlreadyChangedException {
         Optional<Reservation> reservation = reservationRepository.findById(reservationId);
         if (reservation.isPresent()) {
             Reservation foundReservation = reservation.get();
+            if (foundReservation.getReservationConfirmationStatus().equals(ReservationConfirmationStatus.DECLINED)) {
+                throw new ReservationStatusAlreadyChangedException("Rezervarea dumneavostra la restaurantul " +
+                        foundReservation.getRestaurant().getRestaurantName() + " a fost deja anulata.");
+            }
+
+            if (foundReservation.getReservationConfirmationStatus().equals(ReservationConfirmationStatus.CONFIRMED)) {
+                throw new ReservationStatusAlreadyChangedException("Rezervarea dumneavostra la restaurantul " +
+                        foundReservation.getRestaurant().getRestaurantName() + " a fost deja acceptata.");
+            }
             foundReservation.setReservationConfirmationStatus(ReservationConfirmationStatus.CONFIRMED);
             reservationRepository.save(foundReservation);
             return foundReservation;
@@ -394,10 +399,19 @@ public class RestaurantService {
     }
 
 
-    public Reservation declineReservation(Integer reservationId) {
+    public Reservation declineReservation(Integer reservationId) throws ReservationStatusAlreadyChangedException {
         Optional<Reservation> reservation = reservationRepository.findById(reservationId);
         if (reservation.isPresent()) {
             Reservation foundReservation = reservation.get();
+            if (foundReservation.getReservationConfirmationStatus().equals(ReservationConfirmationStatus.DECLINED)) {
+                throw new ReservationStatusAlreadyChangedException("Rezervarea dumneavostra la restaurantul " +
+                        foundReservation.getRestaurant().getRestaurantName() + " a fost deja anulata.");
+            }
+
+            if (foundReservation.getReservationConfirmationStatus().equals(ReservationConfirmationStatus.CONFIRMED)) {
+                throw new ReservationStatusAlreadyChangedException("Rezervarea dumneavostra la restaurantul " +
+                        foundReservation.getRestaurant().getRestaurantName() + " a fost deja acceptata.");
+            }
             foundReservation.setReservationConfirmationStatus(ReservationConfirmationStatus.DECLINED);
             reservationRepository.save(foundReservation);
             return foundReservation;

@@ -1,119 +1,89 @@
 package com.teo.foodzzzbackend.service;
 
 import com.teo.foodzzzbackend.model.*;
+import com.teo.foodzzzbackend.model.event.ReservationStatusChangeEvent;
 import com.teo.foodzzzbackend.repository.*;
 import com.teo.foodzzzbackend.security.payload.response.MessageResponse;
 import com.teo.foodzzzbackend.security.service.UserDetailsServiceImpl;
-import org.hibernate.annotations.Tables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import javax.transaction.Transactional;
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
 public class ManagerService {
-    @Autowired
-    RestaurantRepository restaurantRepository;
+    private static final Logger logger = LoggerFactory.getLogger(ManagerService.class);
 
     @Autowired
-    ReservationRepository reservationRepository;
+    private RestaurantRepository restaurantRepository;
 
     @Autowired
-    KitchenTypeRepository kitchenTypeRepository;
+    private ReservationRepository reservationRepository;
 
     @Autowired
-    AddressRepository addressRepository;
+    private KitchenTypeRepository kitchenTypeRepository;
 
     @Autowired
-    UserRepository userRepository;
+    private AddressRepository addressRepository;
 
     @Autowired
-    TagRepository tagRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    LocalTypeRepository localTypeRepository;
+    private TagRepository tagRepository;
+
+    @Autowired
+    private LocalTypeRepository localTypeRepository;
 
     @Autowired
     private DBFileRepository dbFileRepository;
 
     @Autowired
-    RestaurantService restaurantService;
+    private RestaurantService restaurantService;
 
     @Autowired
     private UserDetailsServiceImpl service;
 
     @Autowired
-    RoleRepository roleRepository;
+    private RoleRepository roleRepository;
 
     @Autowired
-    TableFormRepository tableFormRepository;
+    private TableFormRepository tableFormRepository;
 
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendSimpleMessage(
-            String to, String subject, String text) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
 
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setFrom("jipa.ioana.teodora@gmail.com");
-        helper.setTo(to);
+    @Autowired
+    private EmailService emailService;
 
-        // use the true flag to indicate the text included is HTML
-        helper.setText(text, true);
-        helper.setSubject(subject);
+    public void updateReservationStatus(String reservationCode, ReservationStatus reservationStatus) throws ParseException {
+        Integer reservationId = Integer.parseInt(reservationCode);
 
-        mailSender.send(message);
-    }
+        Optional<Reservation> reservation = reservationRepository.findById(reservationId);
 
-    private void sendReservationEmail(Reservation reservation, Boolean accepted) throws ParseException {
-        String emailText;
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        String reservationDate = formatter.format(reservation.getReservationDate());
-        if(!accepted){
-            emailText = "Ne pare rău să vă anunțăm că managerul restaurantului "+ reservation.getRestaurant().getRestaurantName()
-                    + " a refuzat rezervarea dvs. de la data de "+ reservationDate + " ora "
-                    + reservation.getReservationHour() + ". Te rugăm alege alta data. Multumim pentru înțelegere! ";
-        }else{
-            emailText = "Echipa FoodZzz dorește să vă anunțe că restaurantul "+
-                    reservation.getRestaurant().getRestaurantName()
-                    + " a acceptat rezervarea dvs. de la data de "+ reservationDate + " ora "
-                    + reservation.getReservationHour() + ". Multumim pentru rezervare! ";
+        if (reservation.isPresent()) {
+            if (reservationStatus.equals(ReservationStatus.DECLINED)) {
+                reservationRepository.changeReservationStatusToDeclined(reservationId);
+            } else {
+                reservationRepository.changeReservationStatusToAccepted(reservationId);
+            }
+            eventPublisher.publishEvent(new ReservationStatusChangeEvent(this, reservation.get(), reservationStatus));
+        } else {
+            logger.debug("Update reservation status - Reservation not found for id  " + reservationId);
         }
-        SimpleMailMessage email = new SimpleMailMessage();
-
-        String recipientAddress = reservation.getUser().getEmail();
-        email.setTo(recipientAddress);
-        email.setSubject("Rezervare la restaurantul " + reservation.getRestaurant().getRestaurantName());
-        email.setText("Salutare, " + reservation.getUser().getUsername() + " ! \r\n" +
-                emailText);
-        mailSender.send(email);
-    }
-
-    public void updateReservationStatusToDeclined(String reservationId) throws ParseException {
-        Reservation reservation = reservationRepository.findById(Integer.parseInt(reservationId)).get();
-        sendReservationEmail(reservation,false);
-        reservationRepository.changeReservationStatusToDeclined(Integer.parseInt(reservationId));
-    }
-
-    public void updateReservationStatusToAccepted(String reservationId) throws ParseException {
-        Reservation reservation = reservationRepository.findById(Integer.parseInt(reservationId)).get();
-        sendReservationEmail(reservation,true);
-        reservationRepository.changeReservationStatusToAccepted(Integer.parseInt(reservationId));
     }
 
     public List<KitchenType> findAllKitchenTypes() {
