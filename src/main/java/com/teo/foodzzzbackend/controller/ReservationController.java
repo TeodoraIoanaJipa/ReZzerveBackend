@@ -47,7 +47,7 @@ public class ReservationController {
             String message = isConfirmed ? "Rezervarea dvs la restaurantul " + reservation.getRestaurant().getRestaurantName() + " a fost confirmata. Va multumim! " :
                     "Rezervarea dvs la restaurantul " + reservation.getRestaurant().getRestaurantName() + " a fost anulata. Vă mulțumim! ";
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(message));
+            return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse(message));
         } catch (ReservationStatusAlreadyChangedException exception) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse(exception.getMessage()));
         } catch (Exception exception) {
