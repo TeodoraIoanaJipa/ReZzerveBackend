@@ -21,16 +21,17 @@ public class ReservationEventListener {
     @Async
     public void handle(ReservationStatusChangeEvent event) {
         try {
+            logger.debug(" ReservationEventListener - event handling for "+ event.getReservationEmailInfoDto().getRestaurantName());
             ReservationStatus reservationStatus = event.getReservationStatus();
             if (reservationStatus != null) {
                 emailService.sendReservationUpdatedByManagerEmail(event.getReservationEmailInfoDto(), reservationStatus);
-                if (event.getReservationEmailInfoDto().getUser() != null) {
+                if (event.getReservationEmailInfoDto().getUsername() != null) {
                     logger.debug("ReservationEventListener - Reservation notification sent to user " +
-                            event.getReservationEmailInfoDto().getUser().getUsername());
+                            event.getReservationEmailInfoDto().getUsername());
                 }
             }
         } catch (Exception exception) {
-            logger.error("ReservationEventListener - Could not send email to user : " + event.getReservationEmailInfoDto().getUser());
+            logger.error("ReservationEventListener - Could not send email to user : " + event.getReservationEmailInfoDto().getUsername());
         }
     }
 

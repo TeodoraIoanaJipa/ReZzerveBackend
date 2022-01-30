@@ -172,5 +172,4 @@ public class RestaurantsController {
         return restaurantService.getBenefitsForUserAndRestaurant(restaurantId, userId);
     }
 
-
 }

@@ -56,12 +56,12 @@ public class EmailService {
                 getEmailTemplate(declinedResourceFile) :
                 getEmailTemplate(resource);
 
-        emailText = emailText.replace("{0}", reservation.getUser().getUsername())
+        emailText = emailText.replace("{0}", reservation.getUsername())
                 .replace("{1}", reservation.getRestaurantName())
                 .replace("{2}", reservationDate)
                 .replace("{3}", reservation.getReservationHour());
 
-        String recipientAddress = reservation.getUser().getEmail();
+        String recipientAddress = reservation.getEmail();
 
         String subjectText = (status.equals(ReservationStatus.DECLINED)) ?
                 "Anulare rezervare la restaurantul " + reservation.getRestaurantName() :

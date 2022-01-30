@@ -89,7 +89,8 @@ public class ManagerService {
             reservationEmailInfoDto.setReservationStatus(updatedReservation.getReservationStatus());
             reservationEmailInfoDto.setReservationConfirmationStatus(updatedReservation.getReservationConfirmationStatus());
             reservationEmailInfoDto.setRestaurantName(updatedReservation.getRestaurant().getRestaurantName());
-            reservationEmailInfoDto.setUser(updatedReservation.getUser());
+            reservationEmailInfoDto.setUsername(updatedReservation.getUser().getUsername());
+            reservationEmailInfoDto.setEmail(updatedReservation.getUser().getEmail());
             eventPublisher.publishEvent(new ReservationStatusChangeEvent(this, reservationEmailInfoDto, reservationStatus));
         } else {
             logger.debug("Update reservation status - Reservation not found for id  " + reservationId);

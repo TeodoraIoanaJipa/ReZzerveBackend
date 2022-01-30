@@ -1,7 +1,6 @@
 package com.teo.foodzzzbackend.model.dto;
 
 import com.teo.foodzzzbackend.model.ReservationConfirmationStatus;
-import com.teo.foodzzzbackend.model.User;
 
 import java.util.Date;
 
@@ -12,7 +11,8 @@ public class ReservationEmailInfoDto {
     private String reservationStatus;
     private ReservationConfirmationStatus reservationConfirmationStatus;
     private String restaurantName;
-    private User user;
+    private String username;
+    private String email;
 
     public Integer getReservationId() {
         return reservationId;
@@ -62,11 +62,19 @@ public class ReservationEmailInfoDto {
         this.restaurantName = restaurantName;
     }
 
-    public User getUser() {
-        return user;
+    public String getUsername() {
+        return username;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }
