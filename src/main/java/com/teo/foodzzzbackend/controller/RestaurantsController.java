@@ -2,6 +2,7 @@ package com.teo.foodzzzbackend.controller;
 
 import com.teo.foodzzzbackend.model.*;
 import com.teo.foodzzzbackend.model.dto.RestaurantDto;
+import com.teo.foodzzzbackend.model.dto.ReviewDTO;
 import com.teo.foodzzzbackend.service.RestaurantService;
 
 import org.springframework.beans.factory.annotation.Autowired;

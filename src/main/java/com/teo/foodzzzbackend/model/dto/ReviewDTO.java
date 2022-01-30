@@ -1,4 +1,4 @@
-package com.teo.foodzzzbackend.model;
+package com.teo.foodzzzbackend.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.OnDelete;

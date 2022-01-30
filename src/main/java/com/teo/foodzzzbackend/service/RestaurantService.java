@@ -1,6 +1,7 @@
 package com.teo.foodzzzbackend.service;
 
 import com.teo.foodzzzbackend.model.*;
+import com.teo.foodzzzbackend.model.dto.ReviewDTO;
 import com.teo.foodzzzbackend.model.exception.ReservationStatusAlreadyChangedException;
 import com.teo.foodzzzbackend.repository.*;
 import org.hibernate.search.jpa.FullTextEntityManager;

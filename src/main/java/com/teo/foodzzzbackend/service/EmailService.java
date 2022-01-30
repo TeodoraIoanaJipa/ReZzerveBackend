@@ -2,6 +2,7 @@ package com.teo.foodzzzbackend.service;
 
 import com.teo.foodzzzbackend.model.Reservation;
 import com.teo.foodzzzbackend.model.ReservationStatus;
+import com.teo.foodzzzbackend.model.dto.ReservationEmailInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -43,26 +44,31 @@ public class EmailService {
         return message;
     }
 
-    public void sendReservationUpdatedByManagerEmail(Reservation reservation, ReservationStatus status) throws ParseException, MessagingException, IOException {
+    public void sendReservationUpdatedByManagerEmail(ReservationEmailInfoDto reservation, ReservationStatus status) throws ParseException, MessagingException, IOException {
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         String reservationDate = formatter.format(reservation.getReservationDate());
 
         InputStream resource = acceptedReservationResourceFile.getInputStream();
-
         InputStream declinedResourceFile = declinedReservationResourceFile.getInputStream();
-        String declinedMessage = getEmailTemplate(declinedResourceFile);
 
-        String emailText = (status.equals(ReservationStatus.DECLINED)) ? declinedMessage : getEmailTemplate(resource);
+        String emailText = (status.equals(ReservationStatus.DECLINED)) ?
+                getEmailTemplate(declinedResourceFile) :
+                getEmailTemplate(resource);
+
         emailText = emailText.replace("{0}", reservation.getUser().getUsername())
-                .replace("{1}", reservation.getRestaurant().getRestaurantName())
+                .replace("{1}", reservation.getRestaurantName())
                 .replace("{2}", reservationDate)
                 .replace("{3}", reservation.getReservationHour());
 
         String recipientAddress = reservation.getUser().getEmail();
 
+        String subjectText = (status.equals(ReservationStatus.DECLINED)) ?
+                "Anulare rezervare la restaurantul " + reservation.getRestaurantName() :
+                "Acceptare rezervare la restaurantul " + reservation.getRestaurantName();
+
         sendReservationConfirmationEmail(recipientAddress,
-                "Rezervare la restaurantul " + reservation.getRestaurant().getRestaurantName(),
+                subjectText,
                 emailText);
     }
 

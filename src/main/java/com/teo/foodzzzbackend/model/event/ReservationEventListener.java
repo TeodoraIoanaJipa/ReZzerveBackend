@@ -23,13 +23,14 @@ public class ReservationEventListener {
         try {
             ReservationStatus reservationStatus = event.getReservationStatus();
             if (reservationStatus != null) {
-                emailService.sendReservationUpdatedByManagerEmail(event.getReservation(), reservationStatus);
-                if (event.getReservation().getUser() != null) {
-                    logger.debug("ReservationEventListener - Reservation notification sent to user " + event.getReservation().getUser().getUsername());
+                emailService.sendReservationUpdatedByManagerEmail(event.getReservationEmailInfoDto(), reservationStatus);
+                if (event.getReservationEmailInfoDto().getUser() != null) {
+                    logger.debug("ReservationEventListener - Reservation notification sent to user " +
+                            event.getReservationEmailInfoDto().getUser().getUsername());
                 }
             }
         } catch (Exception exception) {
-            logger.error("ReservationEventListener - Could not send email to user : " + event.getReservation().getUser());
+            logger.error("ReservationEventListener - Could not send email to user : " + event.getReservationEmailInfoDto().getUser());
         }
     }
 

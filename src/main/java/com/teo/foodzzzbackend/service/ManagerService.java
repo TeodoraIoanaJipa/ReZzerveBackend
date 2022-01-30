@@ -1,6 +1,7 @@
 package com.teo.foodzzzbackend.service;
 
 import com.teo.foodzzzbackend.model.*;
+import com.teo.foodzzzbackend.model.dto.ReservationEmailInfoDto;
 import com.teo.foodzzzbackend.model.event.ReservationStatusChangeEvent;
 import com.teo.foodzzzbackend.repository.*;
 import com.teo.foodzzzbackend.security.payload.response.MessageResponse;
@@ -80,7 +81,16 @@ public class ManagerService {
             } else {
                 reservationRepository.changeReservationStatusToAccepted(reservationId);
             }
-            eventPublisher.publishEvent(new ReservationStatusChangeEvent(this, reservation.get(), reservationStatus));
+            ReservationEmailInfoDto reservationEmailInfoDto = new ReservationEmailInfoDto();
+            Reservation updatedReservation = reservation.get();
+            reservationEmailInfoDto.setReservationId(updatedReservation.getReservationId());
+            reservationEmailInfoDto.setReservationDate(updatedReservation.getReservationDate());
+            reservationEmailInfoDto.setReservationHour(updatedReservation.getReservationHour());
+            reservationEmailInfoDto.setReservationStatus(updatedReservation.getReservationStatus());
+            reservationEmailInfoDto.setReservationConfirmationStatus(updatedReservation.getReservationConfirmationStatus());
+            reservationEmailInfoDto.setRestaurantName(updatedReservation.getRestaurant().getRestaurantName());
+            reservationEmailInfoDto.setUser(updatedReservation.getUser());
+            eventPublisher.publishEvent(new ReservationStatusChangeEvent(this, reservationEmailInfoDto, reservationStatus));
         } else {
             logger.debug("Update reservation status - Reservation not found for id  " + reservationId);
         }
