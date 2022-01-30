@@ -12,6 +12,9 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     Review save(Review review);
 
     Optional<List<Review>> findAllByRestaurantIdOrderByCreatedDateDesc(int restaurantId);
+
+    Optional<List<Review>> findAllByRestaurantIdAndUserIdAndRating(int restaurantId, Long userId, int rating);
+
     Optional<List<Review>> findAllByRestaurantIdAndUserIdAndReservation_ReservationId(int restaurantId,
                                                                                       Long userId, Integer reservationId);
 }

@@ -1,5 +1,6 @@
 package com.teo.foodzzzbackend.controller;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.teo.foodzzzbackend.model.*;
 import com.teo.foodzzzbackend.model.dto.RestaurantDto;
 import com.teo.foodzzzbackend.model.dto.ReviewDTO;
@@ -28,7 +29,7 @@ public class RestaurantsController {
     public static final int RESERVATIONS_PER_PAGE = 6;
 
     @Autowired
-    RestaurantService restaurantService;
+    private RestaurantService restaurantService;
 
     @GetMapping("/restaurants/all")
     @CrossOrigin
@@ -163,5 +164,13 @@ public class RestaurantsController {
     public Review saveReview(@RequestBody ReviewDTO reviewDTO) {
         return (restaurantService.postReview(reviewDTO));
     }
+
+    @GetMapping("/restaurants/benefits")
+    @CrossOrigin
+    public Boolean getBenefitsForRestaurantAndUser(@RequestParam String restaurantId, @RequestParam String userId) {
+
+        return restaurantService.getBenefitsForUserAndRestaurant(restaurantId, userId);
+    }
+
 
 }

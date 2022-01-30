@@ -420,4 +420,16 @@ public class RestaurantService {
         return null;
     }
 
+    public boolean getBenefitsForUserAndRestaurant(String restaurantId, String userId){
+        Long currentUserId = Long.parseLong(userId);
+        if (userRepository.findById(currentUserId).isPresent()){
+            Integer currentRestaurantId = Integer.parseInt(restaurantId);
+            if(restaurantRepository.findRestaurantId(currentRestaurantId).isPresent()){
+                Optional<List<Review>> topRatedReviews = reviewRepository.findAllByRestaurantIdAndUserIdAndRating(currentRestaurantId, currentUserId, 5);
+                return topRatedReviews.isPresent();
+            }
+        }
+        return false;
+    }
+
 }
