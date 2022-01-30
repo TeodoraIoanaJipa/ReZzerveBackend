@@ -1,4 +1,9 @@
-package com.teo.foodzzzbackend.model;
+package com.teo.foodzzzbackend.model.dto;
+
+import com.teo.foodzzzbackend.model.Address;
+import com.teo.foodzzzbackend.model.KitchenType;
+import com.teo.foodzzzbackend.model.LocalType;
+import com.teo.foodzzzbackend.model.Tag;
 
 import java.util.HashSet;
 import java.util.List;

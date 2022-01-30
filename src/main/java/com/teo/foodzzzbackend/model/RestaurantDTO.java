@@ -1,7 +1,5 @@
 package com.teo.foodzzzbackend.model;
 
-import java.util.HashSet;
-import java.util.Set;
 
 public class RestaurantDTO {
     private Integer id;

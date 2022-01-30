@@ -1,6 +1,7 @@
 package com.teo.foodzzzbackend.controller;
 
 import com.teo.foodzzzbackend.model.*;
+import com.teo.foodzzzbackend.model.dto.RestaurantUpdateDTO;
 import com.teo.foodzzzbackend.security.payload.response.MessageResponse;
 import com.teo.foodzzzbackend.service.ManagerService;
 import com.teo.foodzzzbackend.service.RestaurantService;

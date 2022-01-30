@@ -2,6 +2,7 @@ package com.teo.foodzzzbackend.service;
 
 import com.teo.foodzzzbackend.model.*;
 import com.teo.foodzzzbackend.model.dto.ReservationEmailInfoDto;
+import com.teo.foodzzzbackend.model.dto.RestaurantUpdateDTO;
 import com.teo.foodzzzbackend.model.event.ReservationStatusChangeEvent;
 import com.teo.foodzzzbackend.repository.*;
 import com.teo.foodzzzbackend.security.payload.response.MessageResponse;
